@@ -11,6 +11,7 @@ use Slim\Routing\RouteCollectorProxy;
 require __DIR__ . '/../vendor/autoload.php';
 require_once './controllers/UserController.php';
 require_once './controllers/ProductController.php';
+require_once './controllers/TableController.php';
 
 // Run php -S localhost:8080 -t app
 // Instantiate App
@@ -120,23 +121,50 @@ $app->group('/products', function ($app) {
 
 });
 
-// $app->group('/tables', function ($app) {
-//     $productController = new ProductController();
+$app->group('/tables', function ($app) {
+    $tableController = new TableController();
 
-//     $app->post('/create', function (Request $request, Response $response) use ($productController) {
-//         $postData = $request->getParsedBody();
-//         $message = $productController->addProduct($postData);
-//         $response->getBody()->write(json_encode(['response' => $message]));
+    $app->post('/create', function (Request $request, Response $response) use ($tableController) {
+        $message = $tableController->addTable();
+        $response->getBody()->write(json_encode(['response' => $message]));
 
-//         return $response;
-//     });
+        return $response;
+    });
 
-//     $app->get('/getAll', function (Request $request, Response $response) use ($productController) {
-//         $allProducts = $productController->getProducts();
-//         $response->getBody()->write(json_encode(['response' => $allProducts]));
+    $app->get('/getAll', function (Request $request, Response $response) use ($tableController) {
+        $allTables = $tableController->getTables();
+        $response->getBody()->write(json_encode(['response' => $allTables]));
 
-//         return $response;
-//     });
-// });
+        return $response;
+    });
+
+    $app->get('/getById/{id}', function (Request $request, Response $response, $args) use ($tableController) {
+        $table = $tableController->getTableById($args);
+        $response->getBody()->write(json_encode(['response' => $table]));
+
+        return $response;
+    });
+
+    $app->put('/disable/{id}', function (Request $request, Response $response, $args) use ($tableController) {
+        $tableId = $args['id'];
+        $data = $request->getParsedBody();
+        $result = $tableController->modifyTableStatus($data, $tableId);
+
+        $response->getBody()->write(json_encode(['response' => $result]));
+
+        return $response;
+    });
+
+    $app->put('/update/{id}', function (Request $request, Response $response, $args) use ($tableController) {
+        $tableId = $args['id'];
+        $data = $request->getParsedBody();
+        $result = $tableController->updateTable($data, $tableId);
+
+
+        $response->getBody()->write(json_encode(['response' => $result]));
+
+        return $response;
+    });
+});
 
 $app->run();
