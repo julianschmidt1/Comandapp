@@ -179,40 +179,31 @@ $app->group('/orders', function ($app) {
         return $response;
     });
 
-    // $app->get('/getAll', function (Request $request, Response $response) use ($tableController) {
-    //     $allTables = $tableController->getTables();
-    //     $response->getBody()->write(json_encode(['response' => $allTables]));
+    $app->get('/getAll', function (Request $request, Response $response) use ($orderController) {
+        $allOrders = $orderController->getOrders();
+        $response->getBody()->write(json_encode(['response' => $allOrders]));
 
-    //     return $response;
-    // });
+        return $response;
+    });
 
-    // $app->get('/getById/{id}', function (Request $request, Response $response, $args) use ($tableController) {
-    //     $table = $tableController->getTableById($args);
-    //     $response->getBody()->write(json_encode(['response' => $table]));
+    $app->put('/update/{id}/{productId}', function (Request $request, Response $response, $args) use ($orderController) {
+        $orderId = $args['id'];
+        $productId = $args['productId'];
+        $data = $request->getParsedBody();
+        $result = $orderController->updateOrder($data, $orderId, $productId);
 
-    //     return $response;
-    // });
+        $response->getBody()->write(json_encode(['response' => $result]));
 
-    // $app->put('/disable/{id}', function (Request $request, Response $response, $args) use ($tableController) {
-    //     $tableId = $args['id'];
-    //     $data = $request->getParsedBody();
-    //     $result = $tableController->modifyTableStatus($data, $tableId);
+        return $response;
+    });
 
-    //     $response->getBody()->write(json_encode(['response' => $result]));
+    $app->get('/getById/{id}', function (Request $request, Response $response, $args) use ($orderController) {
+        $order = $orderController->getOrderById($args);
+        $response->getBody()->write(json_encode(['response' => $order]));
 
-    //     return $response;
-    // });
+        return $response;
+    });
 
-    // $app->put('/update/{id}', function (Request $request, Response $response, $args) use ($tableController) {
-    //     $tableId = $args['id'];
-    //     $data = $request->getParsedBody();
-    //     $result = $tableController->updateTable($data, $tableId);
-
-
-    //     $response->getBody()->write(json_encode(['response' => $result]));
-
-    //     return $response;
-    // });
 });
 
 $app->run();
