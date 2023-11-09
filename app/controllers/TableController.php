@@ -8,9 +8,9 @@ class TableController
     {
         $newTable = new Table();
         $newTableId = TableController::generateTableId();
-        $newTable->setId($newTableId);
-        $newTable->setStatus("Cerrada");
-        $newTable->setCreationDate(date('Y-m-d H:i:s'));
+        $newTable->id = $newTableId;
+        $newTable->status = "Cerrada";
+        $newTable->creationDate = date('Y-m-d H:i:s');
 
         return $newTable->insertTable() ? $newTableId : 0;
     }
@@ -18,15 +18,7 @@ class TableController
 
     public function getTables()
     {
-        $allTables = Table::getAllTables();
-
-        if (count($allTables) > 0) {
-            $tablesData = array_map(function ($table) {
-                return TableController::getTableData($table);
-            }, $allTables);
-        }
-
-        return $tablesData;
+        return Table::getAllTables();
     }
 
     public function updateTable($data, $tableId)
@@ -37,9 +29,9 @@ class TableController
                 $tableStatus = $tableData['status'];
                 if (strlen($tableId) === 5 && strlen($tableStatus) > 3) {
                     $newTable = new Table();
-                    $newTable->setId($tableId);
-                    $newTable->setStatus($tableStatus);
-                    $newTable->setModificationDate(date('Y-m-d H:i:s'));
+                    $newTable->id = $tableId;
+                    $newTable->status = $tableStatus;
+                    $newTable->modificationDate = date('Y-m-d H:i:s');
                     return $newTable->updateTable() ? "Mesa modificada con exito" : "No se pudo modificar la mesa";
                 }
             }
@@ -67,24 +59,13 @@ class TableController
             $tableId = $data['id'];
             if (strlen($tableId) === 5) {
                 $table = Table::getTableById($data['id']);
-                if ($table !== null) {
-                    return TableController::getTableData($table);
+                if ($table instanceof Table) {
+                    return $table;
                 }
             }
         }
 
         return "La mesa no existe.";
-    }
-
-    public static function getTableData($user)
-    {
-        return [
-            'id' => $user->getId(),
-            'status' => $user->getStatus(),
-            'creationDate' => $user->getCreationDate(),
-            'modificationDate' => $user->getModificationDate(),
-            'disabled' => $user->getDisabled() === 1,
-        ];
     }
 
     public static function generateTableId()

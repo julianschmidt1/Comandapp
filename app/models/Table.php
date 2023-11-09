@@ -4,20 +4,15 @@ require_once 'models/BaseModel.php';
 
 class Table extends BaseModel
 {
-    private $_id;
-    private $_status;
+    public $status;
 
     public function insertTable()
     {
         $dataObject = Data::getDataObject();
 
-        $id = $this->getId();
-        $status = $this->getStatus();
-        $creationDate = $this->getCreationDate();
-
         $query = $dataObject->getQuery(
             "INSERT INTO tables (id, status, creation_date)
-            VALUES ('$id', '$status', '$creationDate')"
+            VALUES ('$this->id', '$this->status', '$this->creationDate')"
         );
         return $query->execute();
     }
@@ -26,16 +21,12 @@ class Table extends BaseModel
     {
         $dataObject = Data::getDataObject();
 
-        $userId = $this->getId();
-        $status = $this->getStatus();
-        $modificationDate = $this->getModificationDate();
-
         $query = $dataObject->getQuery(
             "UPDATE tables
             SET
-                status = '$status',
-                modification_date = '$modificationDate'
-            WHERE id = '$userId'"
+                status = '$this->status',
+                modification_date = '$this->modificationDate'
+            WHERE id = '$this->id'"
         );
         return $query->execute();
     }
@@ -47,23 +38,13 @@ class Table extends BaseModel
             "SELECT 
             id,
             status,
-            creation_date,
-            modification_date,
+            creation_date as creationDate,
+            modification_date as modificationDate,
             disabled
             FROM tables;"
         );
         $query->execute();
-        $queryResult = $query->fetchAll(PDO::FETCH_ASSOC);
-        $tables = [];
-
-        if (!empty($queryResult)) {
-            foreach ($queryResult as $result) {
-                $table = Table::convertAssocToTableObject($result);
-                $tables[] = $table;
-            }
-        }
-
-        return $tables;
+        return $query->fetchAll(PDO::FETCH_CLASS, 'table');
     }
 
     public static function modifyDisabledStatus($tableId, $value)
@@ -81,49 +62,16 @@ class Table extends BaseModel
     {
         $dataObject = Data::getDataObject();
         $query = $dataObject->getQuery(
-            "SELECT * FROM `tables` WHERE tables.id = '$id'"
+            "SELECT
+            id,
+            status,
+            creation_date as creationDate,
+            modification_date as modificationDate,
+            disabled
+            FROM `tables` WHERE tables.id = '$id'"
         );
 
         $query->execute();
-        $queryResult = $query->fetchAll(PDO::FETCH_ASSOC);
-
-        if (!empty($queryResult)) {
-            $table = Table::convertAssocToTableObject($queryResult[0]);
-            return $table;
-        }
-        return null;
-    }
-
-    public static function convertAssocToTableObject($assocData)
-    {
-        $table = new Table();
-
-        $table->setId($assocData['id']);
-        $table->setStatus($assocData['status']);
-        $table->setCreationDate($assocData['creation_date']);
-        $table->setModificationDate($assocData['modification_date']);
-        $table->setDisabled($assocData['disabled']);
-
-        return $table;
-    }
-
-    public function getId()
-    {
-        return $this->_id;
-    }
-
-    public function getStatus()
-    {
-        return $this->_status;
-    }
-
-    public function setStatus($status)
-    {
-        $this->_status = $status;
-    }
-
-    public function setId($id)
-    {
-        $this->_id = $id;
+        return $query->fetchObject('table');
     }
 }

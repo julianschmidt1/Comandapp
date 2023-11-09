@@ -15,16 +15,16 @@ class OrderController
 
                 if (OrderController::checkValidIds($productIds) && strlen($customerName) > 3) {
                     $newOrder = new Order();
-                    $newOrder->setId(OrderController::generateOrderId());
+                    $newOrder->id = OrderController::generateOrderId();
                     foreach ($productIds as $id) {
-                        $newOrder->setCustomerName($customerName);
-                        $newOrder->setProductId($id);
-                        $newOrder->setStatus("Pendiente");
-                        $newOrder->setCreationDate(date('Y-m-d H:i:s'));
+                        $newOrder->customerName = $customerName;
+                        $newOrder->productId = $id;
+                        $newOrder->status = "Pendiente";
+                        $newOrder->creationDate = date('Y-m-d H:i:s');
 
                         $newOrder->insertOrder();
                     }
-                    return $newOrder->getId();
+                    return $newOrder->id;
                 }
 
                 return "Parametros invalidos";
@@ -43,11 +43,11 @@ class OrderController
                 $orderDelay = (int) $orderData['estimatedDelay'];
                 if (strlen($orderStatus) > 3 && $orderDelay > 0) {
                     $newOrder = new Order();
-                    $newOrder->setId($orderId);
-                    $newOrder->setProductId((int) $productId);
-                    $newOrder->setStatus($orderStatus);
-                    $newOrder->setEstimatedDelay($orderDelay);
-                    $newOrder->setModificationDate(date('Y-m-d H:i:s'));
+                    $newOrder->id = $orderId;
+                    $newOrder->productId = (int) $productId;
+                    $newOrder->status = $orderStatus;
+                    $newOrder->estimatedDelay = $orderDelay;
+                    $newOrder->modificationDate = date('Y-m-d H:i:s');
                     return $newOrder->updateOrder() ? "Orden modificada con exito" : "No se pudo modificar la orden";
                 }
             }
@@ -57,15 +57,7 @@ class OrderController
 
     public function getOrders()
     {
-        $allOrders = Order::getAllOrders();
-
-        if (count($allOrders) > 0) {
-            $ordersData = array_map(function ($order) {
-                return OrderController::getOrderData($order);
-            }, $allOrders);
-        }
-
-        return $ordersData;
+        return Order::getAllOrders();
     }
 
     public function getOrderById($data)
@@ -75,28 +67,12 @@ class OrderController
             if (strlen($orderId) === 5) {
                 $orders = Order::getOrderById($data['id']);
                 if (count($orders) > 0) {
-                    $ordersData = array_map(function ($order) {
-                        return OrderController::getOrderData($order);
-                    }, $orders);
+                    return $orders;
                 }
-
-                return $ordersData;
             }
         }
 
         return "La orden no existe.";
-    }
-
-    public static function getOrderData($order)
-    {
-        return [
-            'orderId' => $order->getId(),
-            'status' => $order->getStatus(),
-            'productId' => $order->getProductId(),
-            'customerName' => $order->getCustomerName(),
-            'creationDate' => $order->getCreationDate(),
-            'modificationDate' => $order->getModificationDate(),
-        ];
     }
 
     public static function generateOrderId()

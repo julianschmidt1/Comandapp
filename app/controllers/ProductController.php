@@ -12,10 +12,10 @@ class ProductController
             $productType = $data['productType'];
             if (strlen($productName) > 3 && (float) $productPrice > 0 && (int) $productType >= 1 && (int) $productType <= 3) {
                 $newProduct = new Product();
-                $newProduct->setName($productName);
-                $newProduct->setPrice((float) $productPrice);
-                $newProduct->setProductType((int) $productType);
-                $newProduct->setCreationDate(date('Y-m-d H:i:s'));
+                $newProduct->name = $productName;
+                $newProduct->price = (float) $productPrice;
+                $newProduct->productType = (int) $productType;
+                $newProduct->creationDate = date('Y-m-d H:i:s');
 
                 return $newProduct->insertProduct();
             }
@@ -33,11 +33,11 @@ class ProductController
                 $price = (float) $productData['price'];
                 if (strlen($name) > 3 && $productType >= 1 && $productType <= 3) {
                     $newProduct = new Product();
-                    $newProduct->setId($userId);
-                    $newProduct->setName($name);
-                    $newProduct->setPrice($price);
-                    $newProduct->setProductType($productType);
-                    $newProduct->setModificationDate(date('Y-m-d H:i:s'));
+                    $newProduct->id = $userId;
+                    $newProduct->name = $name;
+                    $newProduct->price = $price;
+                    $newProduct->productType = $productType;
+                    $newProduct->modificationDate = date('Y-m-d H:i:s');
                     return $newProduct->updateProduct() ? "Producto modificado con exito" : "No se pudo modificar el producto";
                 }
             }
@@ -47,16 +47,7 @@ class ProductController
 
     public function getProducts()
     {
-
-        $allProducts = Product::getAllProducts();
-
-        if (count($allProducts) > 0) {
-            $productsData = array_map(function ($product) {
-                return ProductController::getProductData($product);
-            }, $allProducts);
-        }
-
-        return $productsData;
+        return Product::getAllProducts();
     }
 
     public function modifyProductStatus($data, $productId)
@@ -64,9 +55,7 @@ class ProductController
         if (isset($data["value"])) {
             $disabledValue = (int) $data["value"];
             if (($disabledValue === 0 || $disabledValue === 1) && (int) $productId > 0) {
-                $userStatus = Product::modifyDisabledStatus($productId, $disabledValue);
-
-                return $userStatus ? "Producto modificado con exito" : "Ocurrio un error al modificar el producto";
+                return Product::modifyDisabledStatus($productId, $disabledValue) ? "Producto modificado con exito" : "Ocurrio un error al modificar el producto";
             }
         }
 
@@ -79,8 +68,8 @@ class ProductController
             $productId = (int) $data['id'];
             if ($productId > 0) {
                 $product = Product::getProductById((int) $data['id']);
-                if ($product !== null) {
-                    return ProductController::getProductData($product);
+                if ($product instanceof Product) {
+                    return $product;
                 }
             }
         }
@@ -88,16 +77,4 @@ class ProductController
         return "El usuario no existe.";
     }
 
-    public static function getProductData($product)
-    {
-        return [
-            'id' => $product->getId(),
-            'name' => $product->getName(),
-            'productType' => $product->getProductType(),
-            'price' => $product->getPrice(),
-            'creationDate' => $product->getCreationDate(),
-            'modificationDate' => $product->getModificationDate(),
-            'disabled' => $product->getDisabled() === 1,
-        ];
-    }
 }

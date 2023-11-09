@@ -11,9 +11,9 @@ class UserController
             $userType = (int) $data['userTypeId'];
             if (strlen($name) > 3 && $userType >= 1 && $userType <= 5) {
                 $newUser = new User();
-                $newUser->setName($name);
-                $newUser->setUserTypeId($userType);
-                $newUser->setCreationDate(date('Y-m-d H:i:s'));
+                $newUser->name = $name;
+                $newUser->userTypeId = $userType;
+                $newUser->creationDate = date('Y-m-d H:i:s');
                 return $newUser->insertUser();
             }
         }
@@ -29,10 +29,10 @@ class UserController
                 $userType = (int) $userData['userTypeId'];
                 if (strlen($name) > 3 && $userType >= 1 && $userType <= 5) {
                     $newUser = new User();
-                    $newUser->setId($userId);
-                    $newUser->setName($name);
-                    $newUser->setUserTypeId($userType);
-                    $newUser->setModificationDate(date('Y-m-d H:i:s'));
+                    $newUser->id = $userId;
+                    $newUser->name = $name;
+                    $newUser->userTypeId = $userType;
+                    $newUser->modificationDate = date('Y-m-d H:i:s');
                     return $newUser->updateUser() ? "Usuario modificado con exito" : "No se pudo modificar el usuario";
                 }
             }
@@ -45,9 +45,7 @@ class UserController
         if (isset($data["value"])) {
             $disabledValue = (int) $data["value"];
             if (($disabledValue === 0 || $disabledValue === 1) && (int) $userId > 0) {
-                $userStatus = User::modifyDisabledStatus($userId, $disabledValue);
-
-                return $userStatus ? "Usuario modificado con exito" : "Ocurrio un error al modificar el usuario";
+                return User::modifyDisabledStatus($userId, $disabledValue) ? "Usuario modificado con exito" : "Ocurrio un error al modificar el usuario";
             }
         }
 
@@ -58,13 +56,7 @@ class UserController
     {
         $allUsers = User::getAllUsers();
 
-        if (count($allUsers) > 0) {
-            $usersData = array_map(function ($user) {
-                return UserController::getUserData($user);
-            }, $allUsers);
-        }
-
-        return $usersData;
+        return $allUsers;
     }
 
     public function getUserById($data)
@@ -73,8 +65,8 @@ class UserController
             $userId = (int) $data['id'];
             if ($userId > 0) {
                 $user = User::getUserById((int) $data['id']);
-                if ($user !== null) {
-                    return UserController::getUserData($user);
+                if ($user instanceof User) {
+                    return $user;
                 }
             }
         }
