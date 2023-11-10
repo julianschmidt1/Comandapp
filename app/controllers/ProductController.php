@@ -1,5 +1,7 @@
 <?php
 require_once 'models/Product.php';
+require_once 'interfaces/IApiUsable.php';
+require_once 'utils/ResponseHelper.php';
 
 class ProductController
 {

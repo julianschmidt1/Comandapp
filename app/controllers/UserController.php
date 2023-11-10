@@ -1,12 +1,15 @@
 <?php
 require_once 'models/User.php';
+require_once 'interfaces/IApiUsable.php';
+require_once 'utils/ResponseHelper.php';
 
-class UserController
+class UserController implements IApiUsable
 {
 
-    public function addUser($data)
+    public function Create($request, $response, $args)
     {
-        if (isset($data['name']) && isset($data['userTypeId'])) {
+        $data = $request->getParsedBody();
+        if (isset($data['name'], $data['userTypeId'])) {
             $name = $data['name'];
             $userType = (int) $data['userTypeId'];
             if (strlen($name) > 3 && $userType >= 1 && $userType <= 5) {
@@ -14,14 +17,20 @@ class UserController
                 $newUser->name = $name;
                 $newUser->userTypeId = $userType;
                 $newUser->creationDate = date('Y-m-d H:i:s');
-                return $newUser->insertUser();
+
+                $message = $newUser->insertUser() ? "Usuario dado de alta con exito" : "Ocurrio un error en el alta de usuario";
+                return ResponseHelper::jsonResponse($response, ["response" => $message]);
+            } else {
+                return ResponseHelper::jsonResponse($response, ["error" => "Parametros invalidos"]);
             }
+        } else {
+            return ResponseHelper::jsonResponse($response, ["error" => "Parametros faltantes"]);
         }
-        return "Uno de los parametros no es valido";
     }
 
-    public function updateUser($data, $userId)
+    public function Update($request, $response, $args)
     {
+        $data = $request->getParsedBody();
         if (isset($data['user'])) {
             $userData = $data['user'];
             if (isset($userData['name']) && isset($userData['userTypeId'])) {
@@ -29,62 +38,54 @@ class UserController
                 $userType = (int) $userData['userTypeId'];
                 if (strlen($name) > 3 && $userType >= 1 && $userType <= 5) {
                     $newUser = new User();
-                    $newUser->id = $userId;
+                    $newUser->id = $args['id'];
                     $newUser->name = $name;
                     $newUser->userTypeId = $userType;
                     $newUser->modificationDate = date('Y-m-d H:i:s');
-                    return $newUser->updateUser() ? "Usuario modificado con exito" : "No se pudo modificar el usuario";
+
+                    $message = $newUser->updateUser() ? "Usuario modificado con exito" : "No se pudo modificar el usuario";
+                    return ResponseHelper::jsonResponse($response, ["response" => $message]);
                 }
             }
         }
-        return "Uno de los parametros no es valido";
+        return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
-    public function modifyUserStatus($data, $userId)
+    public function Delete($request, $response, $args)
     {
+        $data = $request->getParsedBody();
         if (isset($data["value"])) {
             $disabledValue = (int) $data["value"];
-            if (($disabledValue === 0 || $disabledValue === 1) && (int) $userId > 0) {
-                return User::modifyDisabledStatus($userId, $disabledValue) ? "Usuario modificado con exito" : "Ocurrio un error al modificar el usuario";
+            if (($disabledValue === 0 || $disabledValue === 1) && (int) $args['id'] > 0) {
+                $message = User::modifyDisabledStatus($args['id'], $disabledValue) ? "Usuario modificado con exito" : "Ocurrio un error al modificar el usuario";
+                return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
         }
 
-        return "Uno de los parametros no es valido";
+        return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
-    public function getUsers()
+    public function GetAll($request, $response, $args)
     {
         $allUsers = User::getAllUsers();
 
-        return $allUsers;
+        return ResponseHelper::jsonResponse($response, ["response" => $allUsers]);
     }
 
-    public function getUserById($data)
+    public function GetById($request, $response, $args)
     {
-        if (isset($data['id'])) {
-            $userId = (int) $data['id'];
+        if (isset($args['id'])) {
+            $userId = (int) $args['id'];
             if ($userId > 0) {
-                $user = User::getUserById((int) $data['id']);
+                $user = User::getUserById((int) $args['id']);
                 if ($user instanceof User) {
-                    return $user;
+                    return ResponseHelper::jsonResponse($response, ["response" => $user]);
+
                 }
             }
         }
 
-        return "El usuario no existe.";
+        return ResponseHelper::jsonResponse($response, ["error" => "El usuario no existe."]);
     }
-
-    public static function getUserData($user)
-    {
-        return [
-            'id' => $user->getId(),
-            'name' => $user->getName(),
-            'userTypeId' => $user->getUserTypeId(),
-            'creationDate' => $user->getCreationDate(),
-            'modificationDate' => $user->getModificationDate(),
-            'disabled' => $user->getDisabled() === 1,
-        ];
-    }
-
 
 }

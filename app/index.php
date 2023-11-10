@@ -5,14 +5,17 @@ ini_set('display_errors', 1);
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
+use Slim\Routing\RouteContext;
 
 require __DIR__ . '/../vendor/autoload.php';
 require_once './controllers/UserController.php';
 require_once './controllers/ProductController.php';
 require_once './controllers/TableController.php';
 require_once './controllers/OrderController.php';
+require_once './middlewares/AuthMiddleware.php';
 
 // Run php -S localhost:8080 -t app
 // Instantiate App
@@ -24,54 +27,13 @@ $app->addBodyParsingMiddleware();
 
 // Routes
 
-$app->group('/users', function ($app) {
-    $userController = new UserController();
-
-    $app->post('/create', function (Request $request, Response $response) use ($userController) {
-        $postData = $request->getParsedBody();
-        $message = $userController->addUser($postData);
-        $response->getBody()->write(json_encode(['response' => $message]));
-
-        return $response;
-    });
-
-    $app->get('/getAll', function (Request $request, Response $response) use ($userController) {
-        $allUsers = $userController->getUsers();
-        $response->getBody()->write(json_encode(['response' => $allUsers]));
-
-        return $response;
-    });
-
-    $app->get('/getById/{id}', function (Request $request, Response $response, $args) use ($userController) {
-        $user = $userController->getUserById($args);
-        $response->getBody()->write(json_encode(['response' => $user]));
-
-        return $response;
-    });
-
-    $app->put('/disable/{id}', function (Request $request, Response $response, $args) use ($userController) {
-        $userId = $args['id'];
-        $data = $request->getParsedBody();
-        $result = $userController->modifyUserStatus($data, $userId);
-
-
-        $response->getBody()->write(json_encode(['response' => $result]));
-
-        return $response;
-    });
-
-    $app->put('/update/{id}', function (Request $request, Response $response, $args) use ($userController) {
-        $userId = $args['id'];
-        $data = $request->getParsedBody();
-        $result = $userController->updateUser($data, $userId);
-
-
-        $response->getBody()->write(json_encode(['response' => $result]));
-
-        return $response;
-    });
-
-});
+$app->group('/users', function (RouteCollectorProxy $group) {
+    $group->post('/create', \UserController::class . ':Create');
+    $group->get('/getAll', \UserController::class . ':GetAll');
+    $group->get('/getById/{id}', \UserController::class . ':GetById');
+    $group->put('/disable/{id}', \UserController::class . ':Delete');
+    $group->put('/update/{id}', \UserController::class . ':Update');
+})->add(new AuthMiddleware());
 
 $app->group('/products', function ($app) {
     $productController = new ProductController();
