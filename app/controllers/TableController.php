@@ -1,10 +1,12 @@
 <?php
 require_once 'models/Table.php';
+require_once 'interfaces/IApiUsable.php';
+require_once 'utils/ResponseHelper.php';
 
-class TableController
+class TableController implements IApiUsable
 {
 
-    public function addTable()
+    public function Create($request, $response, $args)
     {
         $newTable = new Table();
         $newTableId = TableController::generateTableId();
@@ -12,55 +14,62 @@ class TableController
         $newTable->status = "Cerrada";
         $newTable->creationDate = date('Y-m-d H:i:s');
 
-        return $newTable->insertTable() ? $newTableId : 0;
+        $message = $newTable->insertTable() ? "Tabla creada con exito" : "Ocurrio un error al crear la tabla";
+        return ResponseHelper::jsonResponse($response, ["response" => $message]);
     }
 
 
-    public function getTables()
+    public function GetAll($request, $response, $args)
     {
-        return Table::getAllTables();
+        $message = Table::getAllTables();
+        return ResponseHelper::jsonResponse($response, ["response" => $message]);
     }
 
-    public function updateTable($data, $tableId)
+    public function Update($request, $response, $args)
     {
+        $data = $request->getParsedBody();
         if (isset($data['table'])) {
             $tableData = $data['table'];
             if (isset($tableData['status'])) {
                 $tableStatus = $tableData['status'];
-                if (strlen($tableId) === 5 && strlen($tableStatus) > 3) {
+                if (strlen($args['id']) === 5 && strlen($tableStatus) > 3) {
                     $newTable = new Table();
-                    $newTable->id = $tableId;
+                    $newTable->id = $args['id'];
                     $newTable->status = $tableStatus;
                     $newTable->modificationDate = date('Y-m-d H:i:s');
-                    return $newTable->updateTable() ? "Mesa modificada con exito" : "No se pudo modificar la mesa";
+                    $message = $newTable->updateTable() ? "Mesa modificada con exito" : "No se pudo modificar la mesa";
+                    return ResponseHelper::jsonResponse($response, ["response" => $message]);
                 }
             }
         }
-        return "Uno de los parametros no es valido";
+
+        return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
-    public function modifyTableStatus($data, $tableId)
+    public function Delete($request, $response, $args)
     {
+        $data = $request->getParsedBody();
         if (isset($data["value"])) {
             $disabledValue = (int) $data["value"];
-            if (($disabledValue === 0 || $disabledValue === 1) && strlen($tableId) === 5) {
-                $tableStatus = Table::modifyDisabledStatus($tableId, $disabledValue);
+            if (($disabledValue === 0 || $disabledValue === 1) && strlen($args['id']) === 5) {
+                $tableStatus = Table::modifyDisabledStatus($args['id'], $disabledValue);
 
-                return $tableStatus ? "Mesa modificada con exito" : "Ocurrio un error al modificar la mesa";
+                $message = $tableStatus ? "Mesa modificada con exito" : "Ocurrio un error al modificar la mesa";
+                return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
         }
 
-        return "Uno de los parametros no es valido";
+        return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
-    public function getTableById($data)
+    public function GetById($request, $response, $args)
     {
         if (isset($data['id'])) {
-            $tableId = $data['id'];
+            $tableId = $args['id'];
             if (strlen($tableId) === 5) {
-                $table = Table::getTableById($data['id']);
+                $table = Table::getTableById($args['id']);
                 if ($table instanceof Table) {
-                    return $table;
+                    return ResponseHelper::jsonResponse($response, ["error" => $table]);
                 }
             }
         }

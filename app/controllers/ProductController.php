@@ -3,11 +3,12 @@ require_once 'models/Product.php';
 require_once 'interfaces/IApiUsable.php';
 require_once 'utils/ResponseHelper.php';
 
-class ProductController
+class ProductController implements IApiUsable
 {
 
-    public function addProduct($data)
+    public function Create($request, $response, $args)
     {
+        $data = $request->getParsedBody();
         if (isset($data['name']) && isset($data['price']) && isset($data['productType'])) {
             $productName = $data['name'];
             $productPrice = $data['price'];
@@ -19,14 +20,16 @@ class ProductController
                 $newProduct->productType = (int) $productType;
                 $newProduct->creationDate = date('Y-m-d H:i:s');
 
-                return $newProduct->insertProduct();
+                $message = $newProduct->insertProduct();
+                return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
         }
-        return "Uno de los parametros no es valido";
+        return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
-    public function updateProduct($data, $userId)
+    public function Update($request, $response, $args)
     {
+        $data = $request->getParsedBody();
         if (isset($data['product'])) {
             $productData = $data['product'];
             if (isset($productData['name']) && isset($productData['productType']) && isset($productData['price'])) {
@@ -35,48 +38,54 @@ class ProductController
                 $price = (float) $productData['price'];
                 if (strlen($name) > 3 && $productType >= 1 && $productType <= 3) {
                     $newProduct = new Product();
-                    $newProduct->id = $userId;
+                    $newProduct->id = $args['id'];
                     $newProduct->name = $name;
                     $newProduct->price = $price;
                     $newProduct->productType = $productType;
                     $newProduct->modificationDate = date('Y-m-d H:i:s');
-                    return $newProduct->updateProduct() ? "Producto modificado con exito" : "No se pudo modificar el producto";
+                    $message = $newProduct->updateProduct() ? "Producto modificado con exito" : "No se pudo modificar el producto";
+                    return ResponseHelper::jsonResponse($response, ["response" => $message]);
                 }
             }
         }
-        return "Uno de los parametros no es valido";
+        return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
-    public function getProducts()
+    public function GetAll($request, $response, $args)
     {
-        return Product::getAllProducts();
+        $message = Product::getAllProducts();
+
+        return ResponseHelper::jsonResponse($response, ["response" => $message]);
     }
 
-    public function modifyProductStatus($data, $productId)
+    public function Delete($request, $response, $args)
     {
+        $data = $request->getParsedBody();
+
         if (isset($data["value"])) {
             $disabledValue = (int) $data["value"];
-            if (($disabledValue === 0 || $disabledValue === 1) && (int) $productId > 0) {
-                return Product::modifyDisabledStatus($productId, $disabledValue) ? "Producto modificado con exito" : "Ocurrio un error al modificar el producto";
+            if (($disabledValue === 0 || $disabledValue === 1) && (int) $args['id'] > 0) {
+                $message = Product::modifyDisabledStatus($args['id'], $disabledValue) ? "Producto modificado con exito" : "Ocurrio un error al modificar el producto";
+                return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
         }
 
-        return "Uno de los parametros no es valido";
+        return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
-    public function getProductById($data)
+    public function GetById($request, $response, $args)
     {
-        if (isset($data['id'])) {
-            $productId = (int) $data['id'];
+        if (isset($args['id'])) {
+            $productId = (int) $args['id'];
             if ($productId > 0) {
-                $product = Product::getProductById((int) $data['id']);
+                $product = Product::getProductById((int) $args['id']);
                 if ($product instanceof Product) {
-                    return $product;
+                    return ResponseHelper::jsonResponse($response, ["response" => $product]);
                 }
             }
         }
 
-        return "El usuario no existe.";
+        return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
 }
