@@ -11,17 +11,20 @@ class OrderController implements IApiUsable
         $data = $request->getParsedBody();
         if (isset($data['data'])) {
             $orderData = $data['data'];
-            if (isset($orderData['customerName']) && isset($orderData['productIds'])) {
+            if (isset($orderData['customerName'], $orderData['products'], $orderData['relatedTable'])) {
 
-                $productIds = $orderData['productIds'];
+                $products = $orderData['products'];
                 $customerName = $orderData['customerName'];
+                $relatedTable = $orderData['relatedTable'];
 
-                if (OrderController::checkValidIds($productIds) && strlen($customerName) > 3) {
+                if (OrderController::checkValidIds($products) && strlen($customerName) > 3) {
                     $newOrder = new Order();
                     $newOrder->id = OrderController::generateOrderId();
-                    foreach ($productIds as $id) {
+                    foreach ($products as $product) {
                         $newOrder->customerName = $customerName;
-                        $newOrder->productId = $id;
+                        $newOrder->productId = $product['productId'];
+                        $newOrder->quantity = $product['quantity'];
+                        $newOrder->relatedTable = $relatedTable;
                         $newOrder->status = "Pendiente";
                         $newOrder->creationDate = date('Y-m-d H:i:s');
 
@@ -104,10 +107,10 @@ class OrderController implements IApiUsable
         return "P" . substr(md5(uniqid(mt_rand(), true)), 0, 4);
     }
 
-    public static function checkValidIds($ids)
+    public static function checkValidIds($products)
     {
-        foreach ($ids as $id) {
-            if (!is_numeric($id)) {
+        foreach ($products as $p) {
+            if (!is_numeric($p['productId']) && !is_numeric($p['quantity']) && $p['quantity'] > 0) {
                 return false;
             }
         }

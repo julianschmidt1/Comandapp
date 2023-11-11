@@ -7,14 +7,16 @@ class Order extends BaseModel
     public $status;
     public $estimatedDelay;
     public $productId;
+    public $relatedTable;
+    public $quantity;
 
     public function insertOrder()
     {
         $dataObject = Data::getDataObject();
 
         $query = $dataObject->getQuery(
-            "INSERT INTO orders (order_id, customer_name, status, product_id, creation_date)
-            VALUES ('$this->id', '$this->customerName', '$this->status', $this->productId, '$this->creationDate')"
+            "INSERT INTO orders (order_id, customer_name, quantity, related_table, status, product_id, creation_date)
+            VALUES ('$this->id', '$this->customerName', '$this->quantity', '$this->relatedTable', '$this->status', $this->productId, '$this->creationDate')"
         );
         $query->execute();
         return $dataObject->getLastInsertedId();
@@ -48,6 +50,8 @@ class Order extends BaseModel
             product_id as productId,
             creation_date as creationDate,
             modification_date as modificationDate,
+            related_table as relatedTable,
+            quantity,
             disabled
             FROM orders
             WHERE order_id = '$id';"
@@ -68,6 +72,8 @@ class Order extends BaseModel
             product_id as productId,
             creation_date as creationDate,
             modification_date as modificationDate,
+            related_table as relatedTable,
+            quantity,
             disabled
             FROM orders;"
         );
