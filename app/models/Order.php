@@ -75,4 +75,16 @@ class Order extends BaseModel
         return $query->fetchAll(PDO::FETCH_CLASS, 'order');
     }
 
+    public static function modifyDisabledStatus($orderId, $productId, $value)
+    {
+        $dataObject = Data::getDataObject();
+        $query = $dataObject->getQuery(
+            "UPDATE orders
+            SET disabled = $value
+            WHERE order_id = '$orderId'
+            AND product_id = $productId"
+        );
+        return $query->execute();
+    }
+
 }

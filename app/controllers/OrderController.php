@@ -3,11 +3,12 @@ require_once 'models/Order.php';
 require_once 'interfaces/IApiUsable.php';
 require_once 'utils/ResponseHelper.php';
 
-class OrderController
+class OrderController implements IApiUsable
 {
 
-    public function addOrder($data)
+    public function Create($request, $response, $args)
     {
+        $data = $request->getParsedBody();
         if (isset($data['data'])) {
             $orderData = $data['data'];
             if (isset($orderData['customerName']) && isset($orderData['productIds'])) {
@@ -24,20 +25,23 @@ class OrderController
                         $newOrder->status = "Pendiente";
                         $newOrder->creationDate = date('Y-m-d H:i:s');
 
-                        $newOrder->insertOrder();
+                        $message = $newOrder->insertOrder();
                     }
-                    return $newOrder->id;
+                    return ResponseHelper::jsonResponse($response, ["response" => $message]);
                 }
 
-                return "Parametros invalidos";
+                return ResponseHelper::jsonResponse($response, ["response" => "Parametros invalidos"]);
             }
-
         }
-        return "Parametros faltantes";
+
+        return ResponseHelper::jsonResponse($response, ["response" => "Parametros faltantes"]);
     }
 
-    public function updateOrder($data, $orderId, $productId)
+    public function Update($request, $response, $args)
     {
+        $orderId = $args['id'];
+        $productId = $args['productId'];
+        $data = $request->getParsedBody();
         if (isset($data['data'])) {
             $orderData = $data['data'];
             if (isset($orderData['status']) && isset($orderData['estimatedDelay'])) {
@@ -50,31 +54,49 @@ class OrderController
                     $newOrder->status = $orderStatus;
                     $newOrder->estimatedDelay = $orderDelay;
                     $newOrder->modificationDate = date('Y-m-d H:i:s');
-                    return $newOrder->updateOrder() ? "Orden modificada con exito" : "No se pudo modificar la orden";
+                    $message = $newOrder->updateOrder() ? "Orden modificada con exito" : "No se pudo modificar la orden";
+                    return ResponseHelper::jsonResponse($response, ["response" => $message]);
                 }
             }
         }
-        return "Uno de los parametros no es valido";
+        return ResponseHelper::jsonResponse($response, ["response" => "Uno de los parametros no es valido"]);
     }
 
-    public function getOrders()
+    public function GetAll($request, $response, $args)
     {
-        return Order::getAllOrders();
+        $orders = Order::getAllOrders();
+        return ResponseHelper::jsonResponse($response, ["response" => $orders]);
     }
 
-    public function getOrderById($data)
+    public function GetById($request, $response, $args)
     {
-        if (isset($data['id'])) {
-            $orderId = $data['id'];
+        if (isset($args['id'])) {
+            $orderId = $args['id'];
             if (strlen($orderId) === 5) {
-                $orders = Order::getOrderById($data['id']);
-                if (count($orders) > 0) {
-                    return $orders;
-                }
+                $orders = Order::getOrderById($args['id']);
+                return ResponseHelper::jsonResponse($response, ["response" => $orders]);
             }
         }
 
-        return "La orden no existe.";
+        return ResponseHelper::jsonResponse($response, ["response" => "La orden no existe"]);
+
+    }
+
+    public function Delete($request, $response, $args)
+    {
+        $data = $request->getParsedBody();
+        $orderId = $args['id'];
+        $productId = $args['productId'];
+
+        if (isset($data["value"])) {
+            $disabledValue = (int) $data["value"];
+            if (($disabledValue === 0 || $disabledValue === 1) && strlen($args['id']) === 5) {
+                $message = Order::modifyDisabledStatus($orderId, $productId, $disabledValue) ? "Orden modificada con exito" : "Ocurrio un error al modificar la orden";
+                return ResponseHelper::jsonResponse($response, ["response" => $message]);
+            }
+        }
+
+        return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
     public static function generateOrderId()

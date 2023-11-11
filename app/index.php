@@ -51,43 +51,13 @@ $app->group('/tables', function (RouteCollectorProxy $group) {
     $group->put('/update/{id}', \TableController::class . ':Update');
 })->add(new AuthMiddleware());
 
-// Implementar baja logica
-$app->group('/orders', function ($app) {
-    $orderController = new OrderController();
+$app->group('/orders', function (RouteCollectorProxy $group) {
+    $group->post('/create', \OrderController::class . ':Create');
+    $group->get('/getAll', \OrderController::class . ':GetAll');
+    $group->get('/getById/{id}', \OrderController::class . ':GetById');
+    $group->put('/update/{id}/{productId}', \OrderController::class . ':Update');
+    $group->put('/disable/{id}/{productId}', \OrderController::class . ':Delete');
+})->add(new AuthMiddleware());
 
-    $app->post('/create', function (Request $request, Response $response) use ($orderController) {
-        $data = $request->getParsedBody();
-        $message = $orderController->addOrder($data);
-        $response->getBody()->write(json_encode(['response' => $message]));
-
-        return $response;
-    });
-
-    $app->get('/getAll', function (Request $request, Response $response) use ($orderController) {
-        $allOrders = $orderController->getOrders();
-        $response->getBody()->write(json_encode(['response' => $allOrders]));
-
-        return $response;
-    });
-
-    $app->put('/update/{id}/{productId}', function (Request $request, Response $response, $args) use ($orderController) {
-        $orderId = $args['id'];
-        $productId = $args['productId'];
-        $data = $request->getParsedBody();
-        $result = $orderController->updateOrder($data, $orderId, $productId);
-
-        $response->getBody()->write(json_encode(['response' => $result]));
-
-        return $response;
-    });
-
-    $app->get('/getById/{id}', function (Request $request, Response $response, $args) use ($orderController) {
-        $order = $orderController->getOrderById($args);
-        $response->getBody()->write(json_encode(['response' => $order]));
-
-        return $response;
-    });
-
-});
 
 $app->run();
