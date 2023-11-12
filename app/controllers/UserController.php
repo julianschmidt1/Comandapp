@@ -9,14 +9,18 @@ class UserController implements IApiUsable
     public function Create($request, $response, $args)
     {
         $data = $request->getParsedBody();
-        if (isset($data['name'], $data['userTypeId'])) {
+        if (isset($data['name'], $data['userTypeId'], $data['mail'], $data['password'])) {
             $name = $data['name'];
             $userType = (int) $data['userTypeId'];
+            $mail = $data['mail'];
+            $password = $data['password'];
             if (strlen($name) > 3 && $userType >= 1 && $userType <= 5) {
                 $newUser = new User();
                 $newUser->name = $name;
                 $newUser->userTypeId = $userType;
                 $newUser->creationDate = date('Y-m-d H:i:s');
+                $newUser->mail = $mail;
+                $newUser->password = $password;
 
                 $message = $newUser->insertUser() ? "Usuario dado de alta con exito" : "Ocurrio un error en el alta de usuario";
                 return ResponseHelper::jsonResponse($response, ["response" => $message]);

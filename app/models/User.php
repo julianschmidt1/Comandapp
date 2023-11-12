@@ -7,14 +7,16 @@ class User extends BaseModel
 {
     public $name;
     public $userTypeId;
+    public $mail;
+    public $password;
 
     public function insertUser()
     {
         $dataObject = Data::getDataObject();
 
         $query = $dataObject->getQuery(
-            "INSERT INTO users (name, user_type_id, creation_date)
-            VALUES ('$this->name', '$this->userTypeId', '$this->creationDate')"
+            "INSERT INTO users (name, email, password, user_type_id, creation_date)
+            VALUES ('$this->name', '$this->mail', '$this->password', '$this->userTypeId', '$this->creationDate')"
         );
         $query->execute();
         return $dataObject->getLastInsertedId();
@@ -45,6 +47,8 @@ class User extends BaseModel
             user_type_id as userTypeId,
             creation_date as creationDate,
             modification_date as modificationDate,
+            email as mail,
+            password,
             disabled
             FROM users;"
         );
@@ -61,6 +65,27 @@ class User extends BaseModel
             WHERE id = $userId"
         );
         return $query->execute();
+    }
+
+    public static function validateUser($email, $password)
+    {
+        $dataObject = Data::getDataObject();
+        $query = $dataObject->getQuery(
+            "SELECT 
+            id,
+            name,
+            user_type_id as userTypeId,
+            creation_date as creationDate,
+            modification_date as modificationDate,
+            disabled
+            FROM `users`
+            WHERE users.email = '$email'
+            AND users.password = '$password'
+            AND users.disabled = 0"
+        );
+
+        $query->execute();
+        return $query->fetchObject('User');
     }
 
     public static function getUserById($userId)
