@@ -9,14 +9,15 @@ class Order extends BaseModel
     public $productId;
     public $relatedTable;
     public $quantity;
+    public $filePath;
 
     public function insertOrder()
     {
         $dataObject = Data::getDataObject();
 
         $query = $dataObject->getQuery(
-            "INSERT INTO orders (order_id, customer_name, quantity, related_table, status, product_id, creation_date)
-            VALUES ('$this->id', '$this->customerName', '$this->quantity', '$this->relatedTable', '$this->status', $this->productId, '$this->creationDate')"
+            "INSERT INTO orders (order_id, customer_name, quantity, related_table, file_path, status, product_id, creation_date)
+            VALUES ('$this->id', '$this->customerName', '$this->quantity', '$this->relatedTable', '$this->filePath', '$this->status', $this->productId, '$this->creationDate')"
         );
         $query->execute();
         return $dataObject->getLastInsertedId();

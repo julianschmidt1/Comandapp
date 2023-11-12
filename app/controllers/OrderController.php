@@ -2,40 +2,45 @@
 require_once 'models/Order.php';
 require_once 'interfaces/IApiUsable.php';
 require_once 'utils/ResponseHelper.php';
+require_once 'utils/ImageHelper.php';
 
 class OrderController implements IApiUsable
 {
 
     public function Create($request, $response, $args)
     {
-        $data = $request->getParsedBody();
-        if (isset($data['data'])) {
-            $orderData = $data['data'];
-            if (isset($orderData['customerName'], $orderData['products'], $orderData['relatedTable'])) {
+        $orderData = $request->getParsedBody();
+        $imageData = $request->getUploadedFiles();
 
-                $products = $orderData['products'];
-                $customerName = $orderData['customerName'];
-                $relatedTable = $orderData['relatedTable'];
+        if (isset($orderData['customerName'], $orderData['products'], $orderData['relatedTable'])) {
+            $products = $orderData['products'];
+            $customerName = $orderData['customerName'];
+            $relatedTable = $orderData['relatedTable'];
 
-                if (OrderController::checkValidIds($products) && strlen($customerName) > 3) {
-                    $newOrder = new Order();
-                    $newOrder->id = OrderController::generateOrderId();
-                    foreach ($products as $product) {
-                        $newOrder->customerName = $customerName;
-                        $newOrder->productId = $product['productId'];
-                        $newOrder->quantity = $product['quantity'];
-                        $newOrder->relatedTable = $relatedTable;
-                        $newOrder->status = "Pendiente";
-                        $newOrder->creationDate = date('Y-m-d H:i:s');
+            if (OrderController::checkValidIds($products) && strlen($customerName) > 3) {
+                $newOrder = new Order();
+                $newOrder->id = OrderController::generateOrderId();
 
-                        $message = $newOrder->insertOrder();
-                    }
-                    return ResponseHelper::jsonResponse($response, ["response" => $message]);
+                $image = new ImageHelper();
+                $fileResult = $image->saveImage($imageData['image'], "Pedido" . $newOrder->id, "../../ImagenesPedidos/");
+                $newOrder->filePath = $fileResult;
+
+                foreach ($products as $product) {
+                    $newOrder->customerName = $customerName;
+                    $newOrder->productId = (int) $product['productId'];
+                    $newOrder->quantity = (int) $product['quantity'];
+                    $newOrder->relatedTable = $relatedTable;
+                    $newOrder->status = "Pendiente";
+                    $newOrder->creationDate = date('Y-m-d H:i:s');
+
+                    $message = $newOrder->insertOrder();
                 }
-
-                return ResponseHelper::jsonResponse($response, ["response" => "Parametros invalidos"]);
+                return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
+
+            return ResponseHelper::jsonResponse($response, ["response" => "Parametros invalidos"]);
         }
+
 
         return ResponseHelper::jsonResponse($response, ["response" => "Parametros faltantes"]);
     }
