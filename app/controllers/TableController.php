@@ -28,18 +28,21 @@ class TableController implements IApiUsable
     public function Update($request, $response, $args)
     {
         $data = $request->getParsedBody();
-        if (isset($data['table'])) {
-            $tableData = $data['table'];
-            if (isset($tableData['status'])) {
-                $tableStatus = $tableData['status'];
-                if (strlen($args['id']) === 5 && strlen($tableStatus) > 3) {
-                    $newTable = new Table();
-                    $newTable->id = $args['id'];
-                    $newTable->status = $tableStatus;
-                    $newTable->modificationDate = date('Y-m-d H:i:s');
-                    $message = $newTable->updateTable() ? "Mesa modificada con exito" : "No se pudo modificar la mesa";
-                    return ResponseHelper::jsonResponse($response, ["response" => $message]);
-                }
+        $userType = $request->getAttribute('userType');
+        if (isset($data['status'])) {
+            $tableStatus = $data['status'];
+            if (
+                strlen($args['id']) === 5 &&
+                (($userType === 4 || $userType === 5) &&
+                    ($tableStatus === "con cliente esperando pedido" || $tableStatus === "con cliente comiendo" || $tableStatus === "con cliente pagando"))
+                || ($userType === 5 && $tableStatus === "cerrada") || ($userType === 5 && $tableStatus === "pendiente")
+            ) {
+                $newTable = new Table();
+                $newTable->id = $args['id'];
+                $newTable->status = $tableStatus;
+                $newTable->modificationDate = date('Y-m-d H:i:s');
+                $message = $newTable->updateTable() ? "Mesa modificada con exito" : "No se pudo modificar la mesa";
+                return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
         }
 

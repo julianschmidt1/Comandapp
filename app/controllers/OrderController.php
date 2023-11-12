@@ -76,6 +76,13 @@ class OrderController implements IApiUsable
         return ResponseHelper::jsonResponse($response, ["response" => $orders]);
     }
 
+    public function GetPending($request, $response, $args)
+    {
+        $userType = $request->getAttribute('userType');
+        $orders = Order::getPending((int) $userType, "Pendiente");
+        return ResponseHelper::jsonResponse($response, ["response" => $orders]);
+    }
+
     public function GetById($request, $response, $args)
     {
         if (isset($args['id'])) {

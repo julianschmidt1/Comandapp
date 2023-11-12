@@ -32,6 +32,7 @@ class AuthMiddleware
 
                 $userType = $user->userTypeId;
                 if (in_array($userType, $this->_allowedRoles)) {
+                    $request = $request->withAttribute('userType', $userType);
                     return $handler->handle($request);
                 } else {
                     $response = new Response();

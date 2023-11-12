@@ -36,28 +36,29 @@ $app->group('/users', function (RouteCollectorProxy $group) {
 })->add(new AuthMiddleware());
 
 $app->group('/products', function (RouteCollectorProxy $group) {
-    $group->post('/create', \ProductController::class . ':Create');
+    $group->post('/create', \ProductController::class . ':Create')->add(new AuthMiddleware());
     $group->get('/getAll', \ProductController::class . ':GetAll');
     $group->get('/getById/{id}', \ProductController::class . ':GetById');
-    $group->put('/disable/{id}', \ProductController::class . ':Delete');
-    $group->put('/update/{id}', \ProductController::class . ':Update');
-})->add(new AuthMiddleware());
+    $group->put('/disable/{id}', \ProductController::class . ':Delete')->add(new AuthMiddleware());
+    $group->put('/update/{id}', \ProductController::class . ':Update')->add(new AuthMiddleware());
+});
 
 $app->group('/tables', function (RouteCollectorProxy $group) {
-    $group->post('/create', \TableController::class . ':Create');
-    $group->get('/getAll', \TableController::class . ':GetAll');
-    $group->get('/getById/{id}', \TableController::class . ':GetById');
-    $group->put('/disable/{id}', \TableController::class . ':Delete');
-    $group->put('/update/{id}', \TableController::class . ':Update');
-})->add(new AuthMiddleware());
+    $group->post('/create', \TableController::class . ':Create')->add(new AuthMiddleware());
+    $group->get('/getAll', \TableController::class . ':GetAll')->add(new AuthMiddleware([4]));
+    $group->get('/getById/{id}', \TableController::class . ':GetById')->add(new AuthMiddleware([4]));
+    $group->put('/disable/{id}', \TableController::class . ':Delete')->add(new AuthMiddleware());
+    $group->put('/update/{id}', \TableController::class . ':Update')->add(new AuthMiddleware([4]));
+});
 
 $app->group('/orders', function (RouteCollectorProxy $group) {
-    $group->post('/create', \OrderController::class . ':Create');
+    $group->post('/create', \OrderController::class . ':Create')->add(new AuthMiddleware([4]));
     $group->get('/getAll', \OrderController::class . ':GetAll');
+    $group->get('/getPending', \OrderController::class . ':GetPending')->add(new AuthMiddleware([1, 2, 3]));
     $group->get('/getById/{id}', \OrderController::class . ':GetById');
-    $group->put('/update/{id}/{productId}', \OrderController::class . ':Update');
-    $group->put('/disable/{id}/{productId}', \OrderController::class . ':Delete');
-})->add(new AuthMiddleware());
+    $group->put('/update/{id}/{productId}', \OrderController::class . ':Update')->add(new AuthMiddleware([1, 2, 3, 4]));
+    $group->put('/disable/{id}/{productId}', \OrderController::class . ':Delete')->add(new AuthMiddleware());
+});
 
 
 $app->run();
