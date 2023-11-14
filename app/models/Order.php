@@ -106,6 +106,22 @@ class Order extends BaseModel
         return $query->fetchAll(PDO::FETCH_CLASS, 'order');
     }
 
+    public static function getOrderDelay($orderId, $tableId)
+    {
+        $dataObject = Data::getDataObject();
+        $query = $dataObject->getQuery(
+            "SELECT 
+                MAX(orders.estimated_delay) AS maxDelay
+            FROM orders
+            JOIN products p ON orders.product_id = p.id
+            WHERE orders.related_table = '$tableId'
+            AND orders.order_id = '$orderId';"
+        );
+        $query->execute();
+        $result = $query->fetch(PDO::FETCH_ASSOC);
+        return $result['maxDelay'];
+    }
+
     public static function getFullBill($orderId, $tableId)
     {
         $dataObject = Data::getDataObject();

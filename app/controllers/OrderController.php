@@ -89,9 +89,13 @@ class OrderController implements IApiUsable
         return ResponseHelper::jsonResponse($response, ["response" => $orders]);
     }
 
-    public function GetDelayTime($request, $response, $args)
+    public function GetOrderDelay($request, $response, $args)
     {
+        $orderId = $args['orderId'];
+        $tableId = $args['tableId'];
+        $delay = Order::getOrderDelay($orderId, $tableId);
 
+        return ResponseHelper::jsonResponse($response, ["response" => $delay]);
     }
 
     public function GetBill($request, $response, $args)
