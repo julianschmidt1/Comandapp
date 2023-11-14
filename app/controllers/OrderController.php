@@ -83,6 +83,12 @@ class OrderController implements IApiUsable
         return ResponseHelper::jsonResponse($response, ["response" => $orders]);
     }
 
+    public function GetReady($request, $response, $args)
+    {
+        $orders = Order::getReady("Listo para servir");
+        return ResponseHelper::jsonResponse($response, ["response" => $orders]);
+    }
+
     public function GetById($request, $response, $args)
     {
         if (isset($args['id'])) {

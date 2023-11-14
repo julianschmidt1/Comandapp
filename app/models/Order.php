@@ -106,6 +106,29 @@ class Order extends BaseModel
         return $query->fetchAll(PDO::FETCH_CLASS, 'order');
     }
 
+    public static function getReady($status)
+    {
+        $dataObject = Data::getDataObject();
+        $query = $dataObject->getQuery(
+            "SELECT 
+                order_id as id,
+                status,
+                customer_name as customerName,
+                estimated_delay as estimatedDelay,
+                product_id as productId,
+                related_table as relatedTable,
+                orders.creation_Date as creationDate,
+                orders.disabled,
+                quantity
+            FROM orders
+            LEFT JOIN products p
+            ON p.id = orders.product_id
+            WHERE status = '$status';"
+        );
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_CLASS, 'order');
+    }
+
     public static function modifyDisabledStatus($orderId, $productId, $value)
     {
         $dataObject = Data::getDataObject();
