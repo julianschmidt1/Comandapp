@@ -106,6 +106,22 @@ class Order extends BaseModel
         return $query->fetchAll(PDO::FETCH_CLASS, 'order');
     }
 
+    public static function getFullBill($orderId, $tableId)
+    {
+        $dataObject = Data::getDataObject();
+        $query = $dataObject->getQuery(
+            "SELECT 
+                SUM(p.price * orders.quantity) AS totalPrice
+            FROM orders
+            JOIN products p ON orders.product_id = p.id
+            WHERE orders.related_table = '$tableId'
+            AND orders.order_id = '$orderId';"
+        );
+        $query->execute();
+        $result = $query->fetch(PDO::FETCH_ASSOC);
+        return $result['totalPrice'];
+    }
+
     public static function getReady($status)
     {
         $dataObject = Data::getDataObject();

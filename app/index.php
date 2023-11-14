@@ -57,6 +57,8 @@ $app->group('/orders', function (RouteCollectorProxy $group) {
     $group->get('/getAll', \OrderController::class . ':GetAll')->add(new AuthMiddleware([4]));
     $group->get('/getPending', \OrderController::class . ':GetPending')->add(new AuthMiddleware([1, 2, 3]));
     $group->get('/getReady', \OrderController::class . ':GetReady')->add(new AuthMiddleware([4]));
+    $group->get('/getBill/{orderId}/{tableId}', \OrderController::class . ':GetBill')->add(new AuthMiddleware([4]));
+    // $group->get('/getBill/{orderId}/{tableId}', \OrderController::class . ':GetBill')->add(new AuthMiddleware([4]));
     $group->get('/getById/{id}', \OrderController::class . ':GetById');
     $group->put('/update/{id}/{productId}', \OrderController::class . ':Update')
         ->add(new AreaMiddleware())
