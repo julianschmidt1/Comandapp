@@ -16,6 +16,7 @@ require_once './controllers/ProductController.php';
 require_once './controllers/TableController.php';
 require_once './controllers/OrderController.php';
 require_once './middlewares/AuthMiddleware.php';
+require_once './middlewares/AreaMiddleware.php';
 
 // Run php -S localhost:8080 -t app
 // Instantiate App
@@ -56,7 +57,9 @@ $app->group('/orders', function (RouteCollectorProxy $group) {
     $group->get('/getAll', \OrderController::class . ':GetAll');
     $group->get('/getPending', \OrderController::class . ':GetPending')->add(new AuthMiddleware([1, 2, 3]));
     $group->get('/getById/{id}', \OrderController::class . ':GetById');
-    $group->put('/update/{id}/{productId}', \OrderController::class . ':Update')->add(new AuthMiddleware([1, 2, 3, 4]));
+    $group->put('/update/{id}/{productId}', \OrderController::class . ':Update')
+        ->add(new AreaMiddleware())
+        ->add(new AuthMiddleware([1, 2, 3]));
     $group->put('/disable/{id}/{productId}', \OrderController::class . ':Delete')->add(new AuthMiddleware());
 });
 
