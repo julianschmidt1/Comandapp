@@ -8,15 +8,15 @@ class Product extends BaseModel
     public $name;
     public $price;
     public $productType;
-    //estimado
+    public $delay;
 
     public function insertProduct()
     {
         $dataObject = Data::getDataObject();
 
         $query = $dataObject->getQuery(
-            "INSERT INTO products (name, price, product_type, creation_date)
-            VALUES ('$this->name', '$this->price', '$this->productType', '$this->creationDate')"
+            "INSERT INTO products (name, price, delay, product_type, creation_date)
+            VALUES ('$this->name', '$this->price', '$this->delay', '$this->productType', '$this->creationDate')"
         );
         $query->execute();
         return $dataObject->getLastInsertedId();
@@ -31,6 +31,7 @@ class Product extends BaseModel
             SET
                 name = '$this->name',
                 price = $this->price,
+                delay = $this->delay,
                 product_type = $this->productType,
                 modification_date = '$this->modificationDate'
             WHERE id = $this->id"
@@ -60,6 +61,7 @@ class Product extends BaseModel
             product_type as productType,
             creation_date as creationDate,
             modification_date as modificationDate,
+            delay,
             disabled
             FROM products;"
         );
@@ -78,6 +80,7 @@ class Product extends BaseModel
             product_type as productType,
             creation_date as creationDate,
             modification_date as modificationDate,
+            delay,
             disabled
             FROM `products` WHERE products.id = $productId"
         );

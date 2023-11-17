@@ -1,5 +1,6 @@
 <?php
 require_once 'models/Order.php';
+require_once 'models/Product.php';
 require_once 'interfaces/IApiUsable.php';
 require_once 'utils/ResponseHelper.php';
 require_once 'utils/ImageHelper.php';
@@ -26,14 +27,19 @@ class OrderController implements IApiUsable
                 $newOrder->filePath = $fileResult;
 
                 foreach ($products as $product) {
-                    $newOrder->customerName = $customerName;
-                    $newOrder->productId = (int) $product['productId'];
-                    $newOrder->quantity = (int) $product['quantity'];
-                    $newOrder->relatedTable = $relatedTable;
-                    $newOrder->status = "Pendiente";
-                    $newOrder->creationDate = date('Y-m-d H:i:s');
+                    $productObject = Product::getProductById((int) $product['productId']);
 
-                    $message = $newOrder->insertOrder();
+                    if ($productObject instanceof Product) {
+                        $newOrder->customerName = $customerName;
+                        $newOrder->productId = (int) $product['productId'];
+                        $newOrder->quantity = (int) $product['quantity'];
+                        $newOrder->relatedTable = $relatedTable;
+                        $newOrder->estimatedDelay = $productObject->delay;
+                        $newOrder->status = "Pendiente";
+                        $newOrder->creationDate = date('Y-m-d H:i:s');
+
+                        $message = $newOrder->insertOrder();
+                    }
                 }
                 return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }

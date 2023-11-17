@@ -9,15 +9,17 @@ class ProductController implements IApiUsable
     public function Create($request, $response, $args)
     {
         $data = $request->getParsedBody();
-        if (isset($data['name']) && isset($data['price']) && isset($data['productType'])) {
+        if (isset($data['name'], $data['price'], $data['productType'], $data['delay'])) {
             $productName = $data['name'];
             $productPrice = $data['price'];
             $productType = $data['productType'];
+            $delay = $data['delay'];
             if (strlen($productName) > 3 && (float) $productPrice > 0 && (int) $productType >= 1 && (int) $productType <= 3) {
                 $newProduct = new Product();
                 $newProduct->name = $productName;
                 $newProduct->price = (float) $productPrice;
                 $newProduct->productType = (int) $productType;
+                $newProduct->delay = (int) $delay;
                 $newProduct->creationDate = date('Y-m-d H:i:s');
 
                 $message = $newProduct->insertProduct();
@@ -32,9 +34,10 @@ class ProductController implements IApiUsable
         $data = $request->getParsedBody();
         if (isset($data['product'])) {
             $productData = $data['product'];
-            if (isset($productData['name']) && isset($productData['productType']) && isset($productData['price'])) {
+            if (isset($productData['name'], $productData['productType'], $productData['price'], $productData['delay'])) {
                 $name = $productData['name'];
                 $productType = (int) $productData['productType'];
+                $delay = (int) $productData['delay'];
                 $price = (float) $productData['price'];
                 if (strlen($name) > 3 && $productType >= 1 && $productType <= 3) {
                     $newProduct = new Product();
@@ -42,6 +45,7 @@ class ProductController implements IApiUsable
                     $newProduct->name = $name;
                     $newProduct->price = $price;
                     $newProduct->productType = $productType;
+                    $newProduct->delay = $delay;
                     $newProduct->modificationDate = date('Y-m-d H:i:s');
                     $message = $newProduct->updateProduct() ? "Producto modificado con exito" : "No se pudo modificar el producto";
                     return ResponseHelper::jsonResponse($response, ["response" => $message]);

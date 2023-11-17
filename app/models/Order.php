@@ -16,8 +16,8 @@ class Order extends BaseModel
         $dataObject = Data::getDataObject();
 
         $query = $dataObject->getQuery(
-            "INSERT INTO orders (order_id, customer_name, quantity, related_table, file_path, status, product_id, creation_date)
-            VALUES ('$this->id', '$this->customerName', '$this->quantity', '$this->relatedTable', '$this->filePath', '$this->status', $this->productId, '$this->creationDate')"
+            "INSERT INTO orders (order_id, customer_name, quantity, estimated_delay, related_table, file_path, status, product_id, creation_date)
+            VALUES ('$this->id', '$this->customerName', '$this->quantity','$this->estimatedDelay', '$this->relatedTable', '$this->filePath', '$this->status', $this->productId, '$this->creationDate')"
         );
         $query->execute();
         return $dataObject->getLastInsertedId();
