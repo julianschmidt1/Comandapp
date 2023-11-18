@@ -6,46 +6,36 @@ use Slim\Psr7\Response;
 
 require_once 'models/User.php';
 require_once 'utils/ResponseHelper.php';
+require_once 'utils/JWTAuthenticator.php';
 
 class AuthMiddleware
 {
-    private $_allowedRoles;
-
-    public function __construct($allowedRoles = [])
-    {
-        if (!in_array(5, $allowedRoles)) {
-            $allowedRoles[] = 5;
-        }
-
-        $this->_allowedRoles = $allowedRoles;
-    }
 
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
-        $params = $request->getQueryParams();
+        $header = $request->getHeaderLine('Authorization');
+        $token = trim(explode("Bearer", $header)[1]);
 
-        if (isset($params['mail'], $params['password'])) {
-
-            $user = User::validateUser($params['mail'], $params['password']);
-
-            if ($user instanceof User) {
-
-                $userType = $user->userTypeId;
-                if (in_array($userType, $this->_allowedRoles)) {
-                    $request = $request->withAttribute('userType', $userType);
-                    return $handler->handle($request);
-                } else {
-                    $response = new Response();
-                    return ResponseHelper::jsonResponse($response, ["response" => "Usuario invalido"]);
-                }
-            } else {
-                $response = new Response();
-
-                return ResponseHelper::jsonResponse($response, ["response" => "El usuario de ingreso no existe"]);
-            }
-        } else {
+        try {
+            JWTAuthenticator::CheckToken($token);
+            return $handler->handle($request);
+        } catch (Exception $e) {
             $response = new Response();
-            return ResponseHelper::jsonResponse($response, ["response" => "Parametros invalidos"]);
+            return ResponseHelper::jsonResponse($response, ["response" => "ERROR: Hubo un error con el TOKEN"]);
+        }
+    }
+
+    public static function checkToken(Request $request, RequestHandler $handler): Response
+    {
+        $header = $request->getHeaderLine('Authorization');
+        $token = trim(explode("Bearer", $header)[1]);
+
+        try {
+            JWTAuthenticator::CheckToken($token);
+            return $handler->handle($request);
+        } catch (Exception $e) {
+            $response = new Response();
+            return ResponseHelper::jsonResponse($response, ["response" => "ERROR: Hubo un error con el TOKEN"]);
         }
     }
 }

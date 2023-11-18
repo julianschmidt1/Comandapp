@@ -8,19 +8,20 @@ use Slim\Routing\RouteContext;
 require_once 'models/Product.php';
 require_once 'utils/ResponseHelper.php';
 
-class AreaMiddleware
+class ProductMiddleware
 {
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
         $routeContext = RouteContext::fromRequest($request);
         $args = $routeContext->getRoute()->getArguments();
-        $userType = $request->getAttribute('userType');
         $product = Product::getProductById((int) $args['productId']);
+        $roleId = (int) $request->getQueryParams()['roleId'];
 
         if ($product instanceof Product) {
 
-            if ($userType === 5 || $userType === $product->productType) {
+            if ($roleId === 5 || $roleId === $product->productType) {
 
+                $response = new Response();
                 return $handler->handle($request);
             } else {
                 $response = new Response();
