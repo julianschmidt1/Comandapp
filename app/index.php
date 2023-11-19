@@ -77,7 +77,7 @@ $app->group('/tables', function (RouteCollectorProxy $group) {
 $app->group('/orders', function (RouteCollectorProxy $group) {
     $group->post('/create', \OrderController::class . ':Create')->add(new UserRoleMiddleware([4]));
     $group->get('/getAll', \OrderController::class . ':GetAll')->add(new UserRoleMiddleware([4]));
-    $group->get('/getPending', \OrderController::class . ':GetPending')->add(new UserRoleMiddleware([1, 2, 3]));
+    $group->get('/getPending', \OrderController::class . ':GetPending')->add(new UserRoleMiddleware([1, 2, 3, 4]));
     $group->get('/getReady', \OrderController::class . ':GetReady')->add(new UserRoleMiddleware([4]));
     $group->get('/getBill/{orderId}/{tableId}', \OrderController::class . ':GetBill')->add(new UserRoleMiddleware([4]));
     $group->get('/getDelay/{orderId}/{tableId}', \OrderController::class . ':GetOrderDelay');

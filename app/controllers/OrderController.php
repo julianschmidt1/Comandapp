@@ -85,7 +85,12 @@ class OrderController implements IApiUsable
     public function GetPending($request, $response, $args)
     {
         $userType = $request->getAttribute('userType');
-        $orders = Order::getPending((int) $userType, "Pendiente");
+        
+        if ($userType === 4 || $userType === 5) { // Mozo o socio ven todos los pendientes
+            $orders = Order::getAllPending("Pendiente");
+        } else {
+            $orders = Order::getPending((int) $userType, "Pendiente");
+        }
         return ResponseHelper::jsonResponse($response, ["response" => $orders]);
     }
 

@@ -10,7 +10,7 @@ class AuthController
     {
         $params = $request->getParsedBody();
 
-        if (isset($params['mail'], $params['passowrd'])) {
+        if (isset($params['mail'], $params['password'])) {
             $mail = $params['mail'];
             $password = $params['password'];
 

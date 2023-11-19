@@ -27,7 +27,7 @@ class UserRoleMiddleware
             $roleId = (int) $args['roleId'];
 
             if (in_array($roleId, $this->_allowedRoles)) {
-
+                $request = $request->withAttribute('userType', $roleId);
                 return $handler->handle($request);
             } else {
 
