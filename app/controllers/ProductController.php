@@ -55,6 +55,33 @@ class ProductController implements IApiUsable
         return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
+    public function Export($request, $response)
+    {
+        $products = Product::getCsvProducts();
+
+        $csvFileName = "products_" . date('Y-m-d-H-i-s') . ".csv";
+        $fullPath = "../../CsvExportados/" . $csvFileName;
+
+        if (count($products) > 0) {
+            $csvFile = fopen($fullPath, 'w');
+            fputcsv($csvFile, array_keys($products[0]));
+
+            foreach ($products as $row) {
+                fputcsv($csvFile, $row);
+            }
+            fclose($csvFile);
+
+            return ResponseHelper::jsonResponse($response, ["reponse" => "Archivo generado con exito"]);
+        } else {
+            return ResponseHelper::jsonResponse($response, ["reponse" => "El archivo esta vacio"]);
+        }
+    }
+
+    public function Import($request, $response)
+    {
+
+    }
+
     public function GetAll($request, $response, $args)
     {
         $message = Product::getAllProducts();

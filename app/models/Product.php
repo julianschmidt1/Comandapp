@@ -69,6 +69,25 @@ class Product extends BaseModel
         return $query->fetchAll(PDO::FETCH_CLASS, 'product');
     }
 
+    public static function getCsvProducts()
+    {
+        $dataObject = Data::getDataObject();
+        $query = $dataObject->getQuery(
+            "SELECT 
+            id,
+            name,
+            price,
+            product_type as productType,
+            creation_date as creationDate,
+            modification_date as modificationDate,
+            delay,
+            disabled
+            FROM products;"
+        );
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public static function getProductById($productId)
     {
         $dataObject = Data::getDataObject();

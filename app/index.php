@@ -46,6 +46,15 @@ $app->group('/products', function (RouteCollectorProxy $group) {
     $group->post('/create', \ProductController::class . ':Create')
         ->add(new UserRoleMiddleware())
         ->add(new AuthMiddleware());
+
+    $group->get('/export', \ProductController::class . ':Export')
+        ->add(new UserRoleMiddleware())
+        ->add(new AuthMiddleware());
+
+    $group->post('/import', \ProductController::class . ':Import')
+        ->add(new UserRoleMiddleware())
+        ->add(new AuthMiddleware());
+
     $group->get('/getAll', \ProductController::class . ':GetAll');
     $group->get('/getById/{id}', \ProductController::class . ':GetById');
     $group->put('/disable/{id}', \ProductController::class . ':Delete')
