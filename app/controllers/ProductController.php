@@ -73,13 +73,27 @@ class ProductController implements IApiUsable
 
             return ResponseHelper::jsonResponse($response, ["reponse" => "Archivo generado con exito"]);
         } else {
-            return ResponseHelper::jsonResponse($response, ["reponse" => "El archivo esta vacio"]);
+            return ResponseHelper::jsonResponse($response, ["error" => "El archivo esta vacio"]);
         }
     }
 
     public function Import($request, $response)
     {
+        $params = $request->getQueryParams();
 
+        if (isset($params['fileName'])) {
+
+            $fileName = $params['fileName'] . ".csv";
+            $result = Product::insertCsvProduct("../../CsvExportados/" . $fileName, "products");
+
+            if ($result) {
+                return ResponseHelper::jsonResponse($response, ["reponse" => "Archivo importado con exito"]);
+            } else {
+                return ResponseHelper::jsonResponse($response, ["error" => "Ocurrio un error al importar el archivo"]);
+            }
+        }
+
+        return ResponseHelper::jsonResponse($response, ["error" => "Parametros faltantes"]);
     }
 
     public function GetAll($request, $response, $args)

@@ -26,6 +26,21 @@ class Data
         return $this->pdoObject->lastInsertId();
     }
 
+    public function beginTransaction()
+    {
+        return $this->pdoObject->beginTransaction();
+    }
+
+    public function commitTransaction()
+    {
+        return $this->pdoObject->commit();
+    }
+
+    public function rollbackTransaction()
+    {
+        return $this->pdoObject->rollBack();
+    }
+
     public static function getDataObject()
     {
         if (!isset(self::$dataObject)) {

@@ -22,6 +22,39 @@ class Product extends BaseModel
         return $dataObject->getLastInsertedId();
     }
 
+    public static function insertCsvProduct($file, $tableName)
+    {
+        $csvFile = fopen($file, 'r');
+
+        if ($csvFile) {
+            $columns = fgetcsv($csvFile);
+            $columnNames = implode(', ', $columns);
+            $columnPlaceholders = implode(', ', array_fill(0, count($columns), '?'));
+
+            $dataObject = Data::getDataObject();
+            $dataObject->beginTransaction();
+
+            try {
+                $query = $dataObject->getQuery(
+                    "INSERT INTO $tableName ($columnNames) VALUES ($columnPlaceholders)"
+                );
+
+                while (($data = fgetcsv($csvFile)) !== false) {
+                    $query->execute($data);
+                }
+
+                $dataObject->commitTransaction();
+                fclose($csvFile);
+
+                return true;
+            } catch (PDOException $e) {
+                $dataObject->rollbackTransaction();
+                return false;
+            }
+        }
+        return false;
+    }
+
     public function updateProduct()
     {
         $dataObject = Data::getDataObject();
@@ -77,9 +110,9 @@ class Product extends BaseModel
             id,
             name,
             price,
-            product_type as productType,
-            creation_date as creationDate,
-            modification_date as modificationDate,
+            product_type,
+            creation_date,
+            modification_date,
             delay,
             disabled
             FROM products;"
