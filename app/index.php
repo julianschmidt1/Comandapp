@@ -97,6 +97,17 @@ $app->group('/orders', function (RouteCollectorProxy $group) {
     $group->put('/disable/{id}/{productId}', \OrderController::class . ':Delete');
 })->add(new AuthMiddleware());
 
+$app->group('/reviews', function (RouteCollectorProxy $group) {
+    $group->post('/create', \TableController::class . ':CreateReview');
+    $group->get('/getFeatured', \TableController::class . ':GetBestReviews')
+        ->add(new UserRoleMiddleware())
+        ->add(new AuthMiddleware());
+
+    $group->get('/getMostUsed', \TableController::class . ':GetMostUsed')
+        ->add(new UserRoleMiddleware())
+        ->add(new AuthMiddleware());
+});
+
 $app->group('/auth', function (RouteCollectorProxy $group) {
     $group->post('/login', \AuthController::class . ':Login');
 });

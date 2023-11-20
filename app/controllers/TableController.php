@@ -1,5 +1,6 @@
 <?php
 require_once 'models/Table.php';
+require_once 'models/Order.php';
 require_once 'interfaces/IApiUsable.php';
 require_once 'utils/ResponseHelper.php';
 
@@ -65,6 +66,64 @@ class TableController implements IApiUsable
         return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
     }
 
+    public function CreateReview($request, $response, $args)
+    {
+        $data = $request->getParsedBody();
+
+        if (isset($data['orderId'], $data['tableId'], $data['tableRating'], $data['restaurantRating'], $data['waiterRating'], $data['chefRating'], $data['description'])) {
+
+            if (
+                Table::getTableById($data['tableId']) instanceof Table &&
+                count(Order::getOrderById($data['orderId'])) >= 1 &&
+                self::isValidRating((int) $data['tableRating']) &&
+                self::isValidRating((int) $data['restaurantRating']) &&
+                self::isValidRating((int) $data['waiterRating']) &&
+                self::isValidRating((int) $data['chefRating']) &&
+                (strlen($data['description']) >= 2 && strlen($data['description']) <= 66)
+            ) {
+
+                if (
+                    Table::insertTableReview(
+                        $data['tableId'],
+                        $data['orderId'],
+                        (int) $data['tableRating'],
+                        (int) $data['restaurantRating'],
+                        (int) $data['waiterRating'],
+                        (int) $data['chefRating'],
+                        $data['description'],
+                        date('Y-m-d H:i:s')
+                    )
+                ) {
+                    return ResponseHelper::jsonResponse($response, ["response" => "Reseña creada con exito"]);
+                }
+                return ResponseHelper::jsonResponse($response, ["response" => "Ocurrio un error al crear la reseña"]);
+            }
+        }
+
+        return ResponseHelper::jsonResponse($response, ["response" => "Parametros invalidos"]);
+    }
+
+    public function GetBestReviews($request, $response, $args)
+    {
+        $topReviews = Table::getBestReviews();
+
+        try {
+            return ResponseHelper::jsonResponse($response, ["response" => $topReviews]);
+        } catch (PDOException $e) {
+            return ResponseHelper::jsonResponse($response, ["response" => "Ocurrio un error al mostrar las mejores reseñas"]);
+        }
+    }
+
+    public function GetMostUsed($request, $response, $args)
+    {
+        try {
+            $mostUsedTable = Table::getMostUsed();
+            return ResponseHelper::jsonResponse($response, ["response" => $mostUsedTable]);
+        } catch (PDOException $e) {
+            return ResponseHelper::jsonResponse($response, ["error" => "Ocurrio un error al mostrar los datos"]);
+        }
+    }
+
     public function GetById($request, $response, $args)
     {
         if (isset($data['id'])) {
@@ -78,6 +137,11 @@ class TableController implements IApiUsable
         }
 
         return "La mesa no existe.";
+    }
+
+    public static function isValidRating($rating)
+    {
+        return $rating >= 1 && $rating <= 10;
     }
 
     public static function generateTableId()
