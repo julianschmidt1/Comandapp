@@ -15,7 +15,7 @@ class ProductMiddleware
         $routeContext = RouteContext::fromRequest($request);
         $args = $routeContext->getRoute()->getArguments();
         $product = Product::getProductById((int) $args['productId']);
-        $roleId = (int) $request->getQueryParams()['roleId'];
+        $roleId =$request->getAttribute('userType'); 
 
         if ($product instanceof Product) {
 

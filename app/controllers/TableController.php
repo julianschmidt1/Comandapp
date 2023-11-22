@@ -15,7 +15,7 @@ class TableController implements IApiUsable
         $newTable->status = "Cerrada";
         $newTable->creationDate = date('Y-m-d H:i:s');
 
-        $message = $newTable->insertTable() ? "Tabla creada con exito" : "Ocurrio un error al crear la tabla";
+        $message = $newTable->insertTable() ? "Mesa creada con exito" : "Ocurrio un error al crear la mesa";
         return ResponseHelper::jsonResponse($response, ["response" => $message]);
     }
 
@@ -126,17 +126,17 @@ class TableController implements IApiUsable
 
     public function GetById($request, $response, $args)
     {
-        if (isset($data['id'])) {
+        if (isset($args['id'])) {
             $tableId = $args['id'];
             if (strlen($tableId) === 5) {
                 $table = Table::getTableById($args['id']);
                 if ($table instanceof Table) {
-                    return ResponseHelper::jsonResponse($response, ["error" => $table]);
+                    return ResponseHelper::jsonResponse($response, ["response" => $table]);
                 }
             }
         }
 
-        return "La mesa no existe.";
+        return ResponseHelper::jsonResponse($response, ["error" => "La mesa no existe"]);
     }
 
     public static function isValidRating($rating)

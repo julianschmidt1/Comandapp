@@ -89,13 +89,14 @@ $app->group('/orders', function (RouteCollectorProxy $group) {
     $group->get('/getPending', \OrderController::class . ':GetPending')->add(new UserRoleMiddleware([1, 2, 3, 4]));
     $group->get('/getReady', \OrderController::class . ':GetReady')->add(new UserRoleMiddleware([4]));
     $group->get('/getBill/{orderId}/{tableId}', \OrderController::class . ':GetBill')->add(new UserRoleMiddleware([4]));
-    $group->get('/getDelay/{orderId}/{tableId}', \OrderController::class . ':GetOrderDelay');
+    
     $group->get('/getById/{id}', \OrderController::class . ':GetById');
     $group->put('/update/{id}/{productId}', \OrderController::class . ':Update')
         ->add(new ProductMiddleware())
         ->add(new UserRoleMiddleware([1, 2, 3]));
     $group->put('/disable/{id}/{productId}', \OrderController::class . ':Delete');
 })->add(new AuthMiddleware());
+$app->get('/orders/getDelay/{orderId}/{tableId}', \OrderController::class . ':GetOrderDelay');
 
 $app->group('/reviews', function (RouteCollectorProxy $group) {
     $group->post('/create', \TableController::class . ':CreateReview');

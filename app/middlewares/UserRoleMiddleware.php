@@ -21,23 +21,11 @@ class UserRoleMiddleware
 
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
-        $args = $request->getQueryParams();
-
-        if (isset($args['roleId'])) {
-            $roleId = (int) $args['roleId'];
-
-            if (in_array($roleId, $this->_allowedRoles)) {
-                $request = $request->withAttribute('userType', $roleId);
-                return $handler->handle($request);
-            } else {
-
-                $response = new Response();
-                return ResponseHelper::jsonResponse($response, ["error" => "No posees permisos para acceder a los datos"]);
-            }
+        if (in_array($request->getAttribute('userType'), $this->_allowedRoles)) {
+            return $handler->handle($request);
         } else {
-
             $response = new Response();
-            return ResponseHelper::jsonResponse($response, ["error" => "Parametros erroneos"]);
+            return ResponseHelper::jsonResponse($response, ["error" => "No posees permisos para acceder a los datos"]);
         }
     }
 }

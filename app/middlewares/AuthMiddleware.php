@@ -18,6 +18,9 @@ class AuthMiddleware
 
         try {
             JWTAuthenticator::CheckToken($token);
+            $tokenData = JWTAuthenticator::GetData($token);
+            $request = $request->withAttribute('userType', $tokenData->roleId);
+
             return $handler->handle($request);
         } catch (Exception $e) {
             $response = new Response();
