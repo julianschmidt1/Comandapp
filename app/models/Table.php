@@ -87,12 +87,13 @@ class Table extends BaseModel
         return $query->fetchAll(PDO::FETCH_CLASS, 'table');
     }
 
-    public static function modifyDisabledStatus($tableId, $value)
+    public static function modifyDisabledStatus($tableId, $value, $disableDate)
     {
         $dataObject = Data::getDataObject();
         $query = $dataObject->getQuery(
             "UPDATE tables
-            SET disabled = $value
+            SET disabled = $value,
+                disable_date = '$disableDate'
             WHERE id = '$tableId'"
         );
         return $query->execute();

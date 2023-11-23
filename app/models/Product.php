@@ -72,12 +72,13 @@ class Product extends BaseModel
         return $query->execute();
     }
 
-    public static function modifyDisabledStatus($productId, $value)
+    public static function modifyDisabledStatus($productId, $value, $disableDate)
     {
         $dataObject = Data::getDataObject();
         $query = $dataObject->getQuery(
             "UPDATE products
-            SET disabled = $value
+            SET disabled = $value,
+                disable_date = '$disableDate'
             WHERE id = $productId"
         );
         return $query->execute();

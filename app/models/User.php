@@ -14,9 +14,10 @@ class User extends BaseModel
     {
         $dataObject = Data::getDataObject();
 
+        $hashedPassword = password_hash($this->password, PASSWORD_DEFAULT);
         $query = $dataObject->getQuery(
             "INSERT INTO users (name, email, password, user_type_id, creation_date)
-            VALUES ('$this->name', '$this->mail', '$this->password', '$this->userTypeId', '$this->creationDate')"
+            VALUES ('$this->name', '$this->mail', '$hashedPassword', '$this->userTypeId', '$this->creationDate')"
         );
         $query->execute();
         return $dataObject->getLastInsertedId();
@@ -56,31 +57,32 @@ class User extends BaseModel
         return $query->fetchAll(PDO::FETCH_CLASS, 'User');
     }
 
-    public static function modifyDisabledStatus($userId, $value)
+    public static function modifyDisabledStatus($userId, $value, $disableDate)
     {
         $dataObject = Data::getDataObject();
         $query = $dataObject->getQuery(
             "UPDATE users
-            SET disabled = $value
+            SET disabled = $value,
+                disable_date = '$disableDate'
             WHERE id = $userId"
         );
         return $query->execute();
     }
 
-    public static function validateUser($email, $password)
+    public static function validateUser($email)
     {
         $dataObject = Data::getDataObject();
         $query = $dataObject->getQuery(
             "SELECT 
             id,
             name,
+            password,
             user_type_id as userTypeId,
             creation_date as creationDate,
             modification_date as modificationDate,
             disabled
             FROM `users`
             WHERE users.email = '$email'
-            AND users.password = '$password'
             AND users.disabled = 0"
         );
 

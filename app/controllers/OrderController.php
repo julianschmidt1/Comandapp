@@ -141,7 +141,7 @@ class OrderController implements IApiUsable
         if (isset($data["value"])) {
             $disabledValue = (int) $data["value"];
             if (($disabledValue === 0 || $disabledValue === 1) && strlen($args['id']) === 5) {
-                $message = Order::modifyDisabledStatus($orderId, $productId, $disabledValue) ? "Orden modificada con exito" : "Ocurrio un error al modificar la orden";
+                $message = Order::modifyDisabledStatus($orderId, $productId, $disabledValue, date('Y-m-d H:i:s')) ? "Orden modificada con exito" : "Ocurrio un error al modificar la orden";
                 return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
         }

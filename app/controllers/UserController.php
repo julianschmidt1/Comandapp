@@ -61,7 +61,7 @@ class UserController implements IApiUsable
         if (isset($data["value"])) {
             $disabledValue = (int) $data["value"];
             if (($disabledValue === 0 || $disabledValue === 1) && (int) $args['id'] > 0) {
-                $message = User::modifyDisabledStatus($args['id'], $disabledValue) ? "Usuario modificado con exito" : "Ocurrio un error al modificar el usuario";
+                $message = User::modifyDisabledStatus($args['id'], $disabledValue, date('Y-m-d H:i:s')) ? "Usuario modificado con exito" : "Ocurrio un error al modificar el usuario";
                 return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
         }

@@ -71,7 +71,11 @@ class ProductController implements IApiUsable
             }
             fclose($csvFile);
 
-            return ResponseHelper::jsonResponse($response, ["reponse" => "Archivo generado con exito"]);
+            // return ResponseHelper::jsonResponse($response, ["reponse" => "Archivo generado con exito"]);
+
+            // $response->getBody()->write(json_encode($data));
+            // return $response
+            //     ->withHeader('Content-Type', 'application/csv');
         } else {
             return ResponseHelper::jsonResponse($response, ["error" => "El archivo esta vacio"]);
         }
@@ -110,7 +114,7 @@ class ProductController implements IApiUsable
         if (isset($data["value"])) {
             $disabledValue = (int) $data["value"];
             if (($disabledValue === 0 || $disabledValue === 1) && (int) $args['id'] > 0) {
-                $message = Product::modifyDisabledStatus($args['id'], $disabledValue) ? "Producto modificado con exito" : "Ocurrio un error al modificar el producto";
+                $message = Product::modifyDisabledStatus($args['id'], $disabledValue, date('Y-m-d H:i:s')) ? "Producto modificado con exito" : "Ocurrio un error al modificar el producto";
                 return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
         }

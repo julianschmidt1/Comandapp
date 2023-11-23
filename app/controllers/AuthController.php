@@ -13,11 +13,13 @@ class AuthController
         if (isset($params['mail'], $params['password'])) {
             $mail = $params['mail'];
             $password = $params['password'];
-            $foundUser = User::validateUser($mail, $password);
-            
+            $foundUser = User::validateUser($mail);
+
             if ($foundUser instanceof User) {
-                $token = JWTAuthenticator::GenerateToken(["id" => $foundUser->id, "roleId" => $foundUser->userTypeId]);
-                return ResponseHelper::jsonResponse($response, ["response" => $token]);
+                if (password_verify($password, $foundUser->password)) {
+                    $token = JWTAuthenticator::GenerateToken(["id" => $foundUser->id, "roleId" => $foundUser->userTypeId]);
+                    return ResponseHelper::jsonResponse($response, ["response" => $token]);
+                }
             }
         }
 

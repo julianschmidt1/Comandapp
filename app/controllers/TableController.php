@@ -56,7 +56,7 @@ class TableController implements IApiUsable
         if (isset($data["value"])) {
             $disabledValue = (int) $data["value"];
             if (($disabledValue === 0 || $disabledValue === 1) && strlen($args['id']) === 5) {
-                $tableStatus = Table::modifyDisabledStatus($args['id'], $disabledValue);
+                $tableStatus = Table::modifyDisabledStatus($args['id'], $disabledValue, date('Y-m-d H:i:s'));
 
                 $message = $tableStatus ? "Mesa modificada con exito" : "Ocurrio un error al modificar la mesa";
                 return ResponseHelper::jsonResponse($response, ["response" => $message]);
