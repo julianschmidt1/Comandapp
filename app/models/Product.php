@@ -14,45 +14,21 @@ class Product extends BaseModel
     {
         $dataObject = Data::getDataObject();
 
-        $query = $dataObject->getQuery(
-            "INSERT INTO products (name, price, delay, product_type, creation_date)
+        try {
+            $query = $dataObject->getQuery(
+                "INSERT INTO products (name, price, delay, product_type, creation_date)
             VALUES ('$this->name', '$this->price', '$this->delay', '$this->productType', '$this->creationDate')"
-        );
-        $query->execute();
-        return $dataObject->getLastInsertedId();
+            );
+            $query->execute();
+            return $dataObject->getLastInsertedId();
+        } catch (PDOException $e) {
+            return null;
+        }
     }
 
-    public static function insertCsvProduct($file, $tableName)
+    public function toCsv()
     {
-        $csvFile = fopen($file, 'r');
-
-        if ($csvFile) {
-            $columns = fgetcsv($csvFile);
-            $columnNames = implode(', ', $columns);
-            $columnPlaceholders = implode(', ', array_fill(0, count($columns), '?'));
-
-            $dataObject = Data::getDataObject();
-            $dataObject->beginTransaction();
-
-            try {
-                $query = $dataObject->getQuery(
-                    "INSERT INTO $tableName ($columnNames) VALUES ($columnPlaceholders)"
-                );
-
-                while (($data = fgetcsv($csvFile)) !== false) {
-                    $query->execute($data);
-                }
-
-                $dataObject->commitTransaction();
-                fclose($csvFile);
-
-                return true;
-            } catch (PDOException $e) {
-                $dataObject->rollbackTransaction();
-                return false;
-            }
-        }
-        return false;
+        return [$this->id, $this->name, $this->price, $this->delay, $this->productType, $this->creationDate, $this->modificationDate, $this->disableDate, $this->disabled];
     }
 
     public function updateProduct()
@@ -95,31 +71,13 @@ class Product extends BaseModel
             product_type as productType,
             creation_date as creationDate,
             modification_date as modificationDate,
+            disable_date as disableDate,
             delay,
             disabled
             FROM products;"
         );
         $query->execute();
         return $query->fetchAll(PDO::FETCH_CLASS, 'product');
-    }
-
-    public static function getCsvProducts()
-    {
-        $dataObject = Data::getDataObject();
-        $query = $dataObject->getQuery(
-            "SELECT 
-            id,
-            name,
-            price,
-            product_type,
-            creation_date,
-            modification_date,
-            delay,
-            disabled
-            FROM products;"
-        );
-        $query->execute();
-        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function getProductById($productId)

@@ -57,47 +57,60 @@ class ProductController implements IApiUsable
 
     public function Export($request, $response)
     {
-        $products = Product::getCsvProducts();
+        $productList = Product::getAllProducts();
 
         $csvFileName = "products_" . date('Y-m-d-H-i-s') . ".csv";
-        $fullPath = "../../CsvExportados/" . $csvFileName;
 
-        if (count($products) > 0) {
-            $csvFile = fopen($fullPath, 'w');
-            fputcsv($csvFile, array_keys($products[0]));
+        if (count($productList) > 0) {
+            $response = $response->withHeader('Content-Type', 'text/csv');
+            $response = $response->withHeader('Content-Disposition', 'attachment; filename=' . $csvFileName);
+            $file = fopen('php://output', 'w');
 
-            foreach ($products as $row) {
-                fputcsv($csvFile, $row);
+            fputcsv($file, ['id', 'name', 'price', 'delay', 'product_type', 'creation_date', 'modification_date', 'disable_date', 'disabled']);
+
+            foreach ($productList as $product) {
+                fputcsv($file, $product->toCsv());
             }
-            fclose($csvFile);
+            fclose($file);
 
-            // return ResponseHelper::jsonResponse($response, ["reponse" => "Archivo generado con exito"]);
-
-            // $response->getBody()->write(json_encode($data));
-            // return $response
-            //     ->withHeader('Content-Type', 'application/csv');
+            return $response;
         } else {
-            return ResponseHelper::jsonResponse($response, ["error" => "El archivo esta vacio"]);
+            return ResponseHelper::jsonResponse($response, ["error" => "El archivo está vacío"]);
         }
     }
 
+
     public function Import($request, $response)
     {
-        $params = $request->getQueryParams();
 
-        if (isset($params['fileName'])) {
+        $uploadedFile = $request->getUploadedFiles()['attachedFile'];
 
-            $fileName = $params['fileName'] . ".csv";
-            $result = Product::insertCsvProduct("../../CsvExportados/" . $fileName, "products");
+        if ($uploadedFile->getError() === UPLOAD_ERR_OK) {
+            $failedInsertions = 0;
+            $succededInsertions = 0;
 
-            if ($result) {
-                return ResponseHelper::jsonResponse($response, ["reponse" => "Archivo importado con exito"]);
-            } else {
-                return ResponseHelper::jsonResponse($response, ["error" => "Ocurrio un error al importar el archivo"]);
+            $fileStream = $uploadedFile->getStream();
+            $csvData = array_map('str_getcsv', explode("\n", $fileStream->getContents()));
+
+            foreach ($csvData as $row) {
+                $product = new Product();
+                $product->name = $row[1];
+                $product->price = $row[2];
+                $product->delay = $row[3];
+                $product->productType = $row[4];
+                $product->creationDate = $row[5];
+
+                if ($product->insertProduct() != null) {
+                    $succededInsertions += 1;
+                } else {
+                    $failedInsertions += 1;
+                }
             }
+
+            return ResponseHelper::jsonResponse($response, ["response" => "$succededInsertions fila/s cargadas con exito. $failedInsertions erroneas"]);
         }
 
-        return ResponseHelper::jsonResponse($response, ["error" => "Parametros faltantes"]);
+        return ResponseHelper::jsonResponse($response, ["error" => "Ocurrio un error al cargar el archivo"]);
     }
 
     public function GetAll($request, $response, $args)
