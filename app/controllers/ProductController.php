@@ -66,8 +66,6 @@ class ProductController implements IApiUsable
             $response = $response->withHeader('Content-Disposition', 'attachment; filename=' . $csvFileName);
             $file = fopen('php://output', 'w');
 
-            fputcsv($file, ['id', 'name', 'price', 'delay', 'product_type', 'creation_date', 'modification_date', 'disable_date', 'disabled']);
-
             foreach ($productList as $product) {
                 fputcsv($file, $product->toCsv());
             }
