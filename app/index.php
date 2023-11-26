@@ -33,6 +33,7 @@ require_once './middlewares/validations/table/TableUpdateMiddleware.php';
 require_once './middlewares/validations/reviews/ReviewsCreationMiddleware.php';
 require_once './middlewares/validations/order/OrderCreationMiddleware.php';
 require_once './middlewares/validations/order/OrderUpdateMiddleware.php';
+require_once './middlewares/validations/LoginMiddleware.php';
 
 
 // Run php -S localhost:8080 -t app
@@ -124,7 +125,7 @@ $app->group('/reviews', function (RouteCollectorProxy $group) {
 });
 
 $app->group('/auth', function (RouteCollectorProxy $group) {
-    $group->post('/login', \AuthController::class . ':Login');
+    $group->post('/login', \AuthController::class . ':Login')->add(new LoginMiddleware());
 });
 
 $app->run();
