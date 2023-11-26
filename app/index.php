@@ -23,6 +23,11 @@ require_once './middlewares/AuthMiddleware.php';
 require_once './middlewares/UserRoleMiddleware.php';
 require_once './middlewares/ProductMiddleware.php';
 
+// validation MWs
+require_once './middlewares/validations/user/CreationMiddleware.php';
+require_once './middlewares/validations/user/UpdateMiddleware.php';
+require_once './middlewares/validations/DisableMiddleware.php';
+
 // Run php -S localhost:8080 -t app
 // Instantiate App
 $app = AppFactory::create();
@@ -33,11 +38,11 @@ $app->addBodyParsingMiddleware();
 
 // Routes
 $app->group('/users', function (RouteCollectorProxy $group) {
-    $group->post('/create', \UserController::class . ':Create');
+    $group->post('/create', \UserController::class . ':Create')->add(new CreationMiddleware());
     $group->get('/getAll', \UserController::class . ':GetAll');
     $group->get('/getById/{id}', \UserController::class . ':GetById');
-    $group->put('/disable/{id}', \UserController::class . ':Delete');
-    $group->put('/update/{id}', \UserController::class . ':Update');
+    $group->put('/disable/{id}', \UserController::class . ':Delete')->add(new DisableMiddleware());
+    $group->put('/update/{id}', \UserController::class . ':Update')->add(new UpdateMiddleware());
 })
     ->add(new UserRoleMiddleware())
     ->add(new AuthMiddleware());
@@ -89,7 +94,7 @@ $app->group('/orders', function (RouteCollectorProxy $group) {
     $group->get('/getPending', \OrderController::class . ':GetPending')->add(new UserRoleMiddleware([1, 2, 3, 4]));
     $group->get('/getReady', \OrderController::class . ':GetReady')->add(new UserRoleMiddleware([4]));
     $group->get('/getBill/{orderId}/{tableId}', \OrderController::class . ':GetBill')->add(new UserRoleMiddleware([4]));
-    
+
     $group->get('/getById/{id}', \OrderController::class . ':GetById');
     $group->put('/update/{id}/{productId}', \OrderController::class . ':Update')
         ->add(new ProductMiddleware())
