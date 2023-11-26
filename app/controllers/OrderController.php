@@ -12,39 +12,34 @@ class OrderController implements IApiUsable
     {
         $orderData = $request->getParsedBody();
         $imageData = $request->getUploadedFiles();
+        $products = $orderData['products'];
+        $customerName = $orderData['customerName'];
+        $relatedTable = $orderData['relatedTable'];
 
-        if (isset($orderData['customerName'], $orderData['products'], $orderData['relatedTable'])) {
-            $products = $orderData['products'];
-            $customerName = $orderData['customerName'];
-            $relatedTable = $orderData['relatedTable'];
+        if (OrderController::checkValidIds($products) && strlen($customerName) > 3) {
+            $newOrder = new Order();
+            $newOrder->id = OrderController::generateOrderId();
 
-            if (OrderController::checkValidIds($products) && strlen($customerName) > 3) {
-                $newOrder = new Order();
-                $newOrder->id = OrderController::generateOrderId();
+            $image = new ImageHelper();
+            $fileResult = $image->saveImage($imageData['image'], "Pedido" . $newOrder->id, "../../ImagenesPedidos/");
+            $newOrder->filePath = $fileResult;
 
-                $image = new ImageHelper();
-                $fileResult = $image->saveImage($imageData['image'], "Pedido" . $newOrder->id, "../../ImagenesPedidos/");
-                $newOrder->filePath = $fileResult;
+            foreach ($products as $product) {
+                $productObject = Product::getProductById((int) $product['productId']);
 
-                foreach ($products as $product) {
-                    $productObject = Product::getProductById((int) $product['productId']);
+                if ($productObject instanceof Product) {
+                    $newOrder->customerName = $customerName;
+                    $newOrder->productId = (int) $product['productId'];
+                    $newOrder->quantity = (int) $product['quantity'];
+                    $newOrder->relatedTable = $relatedTable;
+                    $newOrder->estimatedDelay = $productObject->delay;
+                    $newOrder->status = "Pendiente";
+                    $newOrder->creationDate = date('Y-m-d H:i:s');
 
-                    if ($productObject instanceof Product) {
-                        $newOrder->customerName = $customerName;
-                        $newOrder->productId = (int) $product['productId'];
-                        $newOrder->quantity = (int) $product['quantity'];
-                        $newOrder->relatedTable = $relatedTable;
-                        $newOrder->estimatedDelay = $productObject->delay;
-                        $newOrder->status = "Pendiente";
-                        $newOrder->creationDate = date('Y-m-d H:i:s');
-
-                        $message = $newOrder->insertOrder();
-                    }
+                    $message = $newOrder->insertOrder();
                 }
                 return ResponseHelper::jsonResponse($response, ["response" => $message]);
             }
-
-            return ResponseHelper::jsonResponse($response, ["response" => "Parametros invalidos"]);
         }
 
 
@@ -56,23 +51,23 @@ class OrderController implements IApiUsable
         $orderId = $args['id'];
         $productId = $args['productId'];
         $data = $request->getParsedBody();
-        if (isset($data['data'])) {
-            $orderData = $data['data'];
-            if (isset($orderData['status']) && isset($orderData['estimatedDelay'])) {
-                $orderStatus = $orderData['status'];
-                $orderDelay = (int) $orderData['estimatedDelay'];
-                if (strlen($orderStatus) > 3 && $orderDelay > 0) {
-                    $newOrder = new Order();
-                    $newOrder->id = $orderId;
-                    $newOrder->productId = (int) $productId;
-                    $newOrder->status = $orderStatus;
-                    $newOrder->estimatedDelay = $orderDelay;
-                    $newOrder->modificationDate = date('Y-m-d H:i:s');
-                    $message = $newOrder->updateOrder() ? "Orden modificada con exito" : "No se pudo modificar la orden";
-                    return ResponseHelper::jsonResponse($response, ["response" => $message]);
-                }
-            }
+
+        $orderData = $data['data'];
+
+        $orderStatus = $orderData['status'];
+        $orderDelay = (int) $orderData['estimatedDelay'];
+        if (strlen($orderStatus) > 3 && $orderDelay > 0) {
+            $newOrder = new Order();
+            $newOrder->id = $orderId;
+            $newOrder->productId = (int) $productId;
+            $newOrder->status = $orderStatus;
+            $newOrder->estimatedDelay = $orderDelay;
+            $newOrder->modificationDate = date('Y-m-d H:i:s');
+            $message = $newOrder->updateOrder() ? "Orden modificada con exito" : "No se pudo modificar la orden";
+            return ResponseHelper::jsonResponse($response, ["response" => $message]);
         }
+
+
         return ResponseHelper::jsonResponse($response, ["response" => "Uno de los parametros no es valido"]);
     }
 
@@ -85,7 +80,7 @@ class OrderController implements IApiUsable
     public function GetPending($request, $response, $args)
     {
         $userType = $request->getAttribute('userType');
-        
+
         if ($userType === 4 || $userType === 5) { // Mozo o socio ven todos los pendientes
             $orders = Order::getAllPending("Pendiente");
         } else {
@@ -120,12 +115,10 @@ class OrderController implements IApiUsable
 
     public function GetById($request, $response, $args)
     {
-        if (isset($args['id'])) {
-            $orderId = $args['id'];
-            if (strlen($orderId) === 5) {
-                $orders = Order::getOrderById($args['id']);
-                return ResponseHelper::jsonResponse($response, ["response" => $orders]);
-            }
+        $orderId = $args['id'];
+        if (strlen($orderId) === 5) {
+            $orders = Order::getOrderById($args['id']);
+            return ResponseHelper::jsonResponse($response, ["response" => $orders]);
         }
 
         return ResponseHelper::jsonResponse($response, ["response" => "La orden no existe"]);
