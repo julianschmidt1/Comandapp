@@ -24,9 +24,12 @@ require_once './middlewares/UserRoleMiddleware.php';
 require_once './middlewares/ProductMiddleware.php';
 
 // validation MWs
-require_once './middlewares/validations/user/CreationMiddleware.php';
-require_once './middlewares/validations/user/UpdateMiddleware.php';
+require_once './middlewares/validations/user/UserCreationMiddleware.php';
+require_once './middlewares/validations/user/UserUpdateMiddleware.php';
 require_once './middlewares/validations/DisableMiddleware.php';
+require_once './middlewares/validations/product/ProductCreationMiddleware.php';
+require_once './middlewares/validations/product/ProductUpdateMiddleware.php';
+
 
 // Run php -S localhost:8080 -t app
 // Instantiate App
@@ -38,36 +41,31 @@ $app->addBodyParsingMiddleware();
 
 // Routes
 $app->group('/users', function (RouteCollectorProxy $group) {
-    $group->post('/create', \UserController::class . ':Create')->add(new CreationMiddleware());
+    $group->post('/create', \UserController::class . ':Create')->add(new UserCreationMiddleware());
     $group->get('/getAll', \UserController::class . ':GetAll');
     $group->get('/getById/{id}', \UserController::class . ':GetById');
     $group->put('/disable/{id}', \UserController::class . ':Delete')->add(new DisableMiddleware());
-    $group->put('/update/{id}', \UserController::class . ':Update')->add(new UpdateMiddleware());
+    $group->put('/update/{id}', \UserController::class . ':Update')->add(new UserUpdateMiddleware());
 })
     ->add(new UserRoleMiddleware())
     ->add(new AuthMiddleware());
 
 $app->group('/products', function (RouteCollectorProxy $group) {
     $group->post('/create', \ProductController::class . ':Create')
-        ->add(new UserRoleMiddleware())
-        ->add(new AuthMiddleware());
+        ->add(new UserRoleMiddleware())->add(new AuthMiddleware())->add(new ProductCreationMiddleware());
 
     $group->get('/export', \ProductController::class . ':Export')
-        ->add(new UserRoleMiddleware())
-        ->add(new AuthMiddleware());
+        ->add(new UserRoleMiddleware())->add(new AuthMiddleware());
 
     $group->post('/import', \ProductController::class . ':Import')
-        ->add(new UserRoleMiddleware())
-        ->add(new AuthMiddleware());
+        ->add(new UserRoleMiddleware())->add(new AuthMiddleware());
 
     $group->get('/getAll', \ProductController::class . ':GetAll');
     $group->get('/getById/{id}', \ProductController::class . ':GetById');
     $group->put('/disable/{id}', \ProductController::class . ':Delete')
-        ->add(new UserRoleMiddleware())
-        ->add(new AuthMiddleware());
+        ->add(new UserRoleMiddleware())->add(new AuthMiddleware())->add(new DisableMiddleware());
     $group->put('/update/{id}', \ProductController::class . ':Update')
-        ->add(new UserRoleMiddleware())
-        ->add(new AuthMiddleware());
+        ->add(new UserRoleMiddleware())->add(new AuthMiddleware())->add(new ProductUpdateMiddleware());
 });
 
 $app->group('/tables', function (RouteCollectorProxy $group) {

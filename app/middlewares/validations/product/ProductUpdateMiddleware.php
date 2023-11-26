@@ -4,16 +4,16 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Psr7\Response;
 
-class UpdateMiddleware
+class ProductUpdateMiddleware
 {
 
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
         $data = $request->getParsedBody();
 
-        if (isset($data['user'])) {
-            $userData = $data['user'];
-            if (isset($userData['name']) && isset($userData['userTypeId'])) {
+        if (isset($data['product'])) {
+            $productData = $data['product'];
+            if (isset($productData['name'], $productData['productType'], $productData['price'], $productData['delay'])) {
                 return $handler->handle($request);
             }
         }
