@@ -30,21 +30,19 @@ class TableController implements IApiUsable
     {
         $data = $request->getParsedBody();
         $userType = $request->getAttribute('userType');
-        if (isset($data['status'])) {
-            $tableStatus = $data['status'];
-            if (
-                strlen($args['id']) === 5 &&
-                (($userType === 4 || $userType === 5) &&
-                    ($tableStatus === "con cliente esperando pedido" || $tableStatus === "con cliente comiendo" || $tableStatus === "con cliente pagando"))
-                || ($userType === 5 && $tableStatus === "cerrada") || ($userType === 5 && $tableStatus === "pendiente")
-            ) {
-                $newTable = new Table();
-                $newTable->id = $args['id'];
-                $newTable->status = $tableStatus;
-                $newTable->modificationDate = date('Y-m-d H:i:s');
-                $message = $newTable->updateTable() ? "Mesa modificada con exito" : "No se pudo modificar la mesa";
-                return ResponseHelper::jsonResponse($response, ["response" => $message]);
-            }
+        $tableStatus = $data['status'];
+        if (
+            strlen($args['id']) === 5 &&
+            (($userType === 4 || $userType === 5) &&
+                ($tableStatus === "con cliente esperando pedido" || $tableStatus === "con cliente comiendo" || $tableStatus === "con cliente pagando"))
+            || ($userType === 5 && $tableStatus === "cerrada") || ($userType === 5 && $tableStatus === "pendiente")
+        ) {
+            $newTable = new Table();
+            $newTable->id = $args['id'];
+            $newTable->status = $tableStatus;
+            $newTable->modificationDate = date('Y-m-d H:i:s');
+            $message = $newTable->updateTable() ? "Mesa modificada con exito" : "No se pudo modificar la mesa";
+            return ResponseHelper::jsonResponse($response, ["response" => $message]);
         }
 
         return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
@@ -53,14 +51,12 @@ class TableController implements IApiUsable
     public function Delete($request, $response, $args)
     {
         $data = $request->getParsedBody();
-        if (isset($data["value"])) {
-            $disabledValue = (int) $data["value"];
-            if (($disabledValue === 0 || $disabledValue === 1) && strlen($args['id']) === 5) {
-                $tableStatus = Table::modifyDisabledStatus($args['id'], $disabledValue, date('Y-m-d H:i:s'));
+        $disabledValue = (int) $data["value"];
+        if (($disabledValue === 0 || $disabledValue === 1) && strlen($args['id']) === 5) {
+            $tableStatus = Table::modifyDisabledStatus($args['id'], $disabledValue, date('Y-m-d H:i:s'));
 
-                $message = $tableStatus ? "Mesa modificada con exito" : "Ocurrio un error al modificar la mesa";
-                return ResponseHelper::jsonResponse($response, ["response" => $message]);
-            }
+            $message = $tableStatus ? "Mesa modificada con exito" : "Ocurrio un error al modificar la mesa";
+            return ResponseHelper::jsonResponse($response, ["response" => $message]);
         }
 
         return ResponseHelper::jsonResponse($response, ["error" => "Uno de los parametros no es valido"]);
@@ -70,34 +66,31 @@ class TableController implements IApiUsable
     {
         $data = $request->getParsedBody();
 
-        if (isset($data['orderId'], $data['tableId'], $data['tableRating'], $data['restaurantRating'], $data['waiterRating'], $data['chefRating'], $data['description'])) {
+        if (
+            Table::getTableById($data['tableId']) instanceof Table &&
+            count(Order::getOrderById($data['orderId'])) >= 1 &&
+            self::isValidRating((int) $data['tableRating']) &&
+            self::isValidRating((int) $data['restaurantRating']) &&
+            self::isValidRating((int) $data['waiterRating']) &&
+            self::isValidRating((int) $data['chefRating']) &&
+            (strlen($data['description']) >= 2 && strlen($data['description']) <= 66)
+        ) {
 
             if (
-                Table::getTableById($data['tableId']) instanceof Table &&
-                count(Order::getOrderById($data['orderId'])) >= 1 &&
-                self::isValidRating((int) $data['tableRating']) &&
-                self::isValidRating((int) $data['restaurantRating']) &&
-                self::isValidRating((int) $data['waiterRating']) &&
-                self::isValidRating((int) $data['chefRating']) &&
-                (strlen($data['description']) >= 2 && strlen($data['description']) <= 66)
+                Table::insertTableReview(
+                    $data['tableId'],
+                    $data['orderId'],
+                    (int) $data['tableRating'],
+                    (int) $data['restaurantRating'],
+                    (int) $data['waiterRating'],
+                    (int) $data['chefRating'],
+                    $data['description'],
+                    date('Y-m-d H:i:s')
+                )
             ) {
-
-                if (
-                    Table::insertTableReview(
-                        $data['tableId'],
-                        $data['orderId'],
-                        (int) $data['tableRating'],
-                        (int) $data['restaurantRating'],
-                        (int) $data['waiterRating'],
-                        (int) $data['chefRating'],
-                        $data['description'],
-                        date('Y-m-d H:i:s')
-                    )
-                ) {
-                    return ResponseHelper::jsonResponse($response, ["response" => "Reseña creada con exito"]);
-                }
-                return ResponseHelper::jsonResponse($response, ["response" => "Ocurrio un error al crear la reseña"]);
+                return ResponseHelper::jsonResponse($response, ["response" => "Reseña creada con exito"]);
             }
+            return ResponseHelper::jsonResponse($response, ["response" => "Ocurrio un error al crear la reseña"]);
         }
 
         return ResponseHelper::jsonResponse($response, ["response" => "Parametros invalidos"]);
@@ -126,13 +119,11 @@ class TableController implements IApiUsable
 
     public function GetById($request, $response, $args)
     {
-        if (isset($args['id'])) {
-            $tableId = $args['id'];
-            if (strlen($tableId) === 5) {
-                $table = Table::getTableById($args['id']);
-                if ($table instanceof Table) {
-                    return ResponseHelper::jsonResponse($response, ["response" => $table]);
-                }
+        $tableId = $args['id'];
+        if (strlen($tableId) === 5) {
+            $table = Table::getTableById($args['id']);
+            if ($table instanceof Table) {
+                return ResponseHelper::jsonResponse($response, ["response" => $table]);
             }
         }
 

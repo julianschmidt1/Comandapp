@@ -29,6 +29,8 @@ require_once './middlewares/validations/user/UserUpdateMiddleware.php';
 require_once './middlewares/validations/DisableMiddleware.php';
 require_once './middlewares/validations/product/ProductCreationMiddleware.php';
 require_once './middlewares/validations/product/ProductUpdateMiddleware.php';
+require_once './middlewares/validations/table/TableUpdateMiddleware.php';
+require_once './middlewares/validations/reviews/ReviewsCreationMiddleware.php';
 
 
 // Run php -S localhost:8080 -t app
@@ -80,10 +82,10 @@ $app->group('/tables', function (RouteCollectorProxy $group) {
         ->add(new UserRoleMiddleware([4]));
 
     $group->put('/disable/{id}', \TableController::class . ':Delete')
-        ->add(new UserRoleMiddleware());
+        ->add(new UserRoleMiddleware())->add(new DisableMiddleware());
 
     $group->put('/update/{id}', \TableController::class . ':Update')
-        ->add(new UserRoleMiddleware([4]));
+        ->add(new UserRoleMiddleware([4]))->add(new TableUpdateMiddleware());
 })->add(new AuthMiddleware());
 
 $app->group('/orders', function (RouteCollectorProxy $group) {
@@ -102,7 +104,7 @@ $app->group('/orders', function (RouteCollectorProxy $group) {
 $app->get('/orders/getDelay/{orderId}/{tableId}', \OrderController::class . ':GetOrderDelay');
 
 $app->group('/reviews', function (RouteCollectorProxy $group) {
-    $group->post('/create', \TableController::class . ':CreateReview');
+    $group->post('/create', \TableController::class . ':CreateReview')->add(new ReviewsCreationMiddleware());
     $group->get('/getFeatured', \TableController::class . ':GetBestReviews')
         ->add(new UserRoleMiddleware())
         ->add(new AuthMiddleware());
