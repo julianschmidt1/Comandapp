@@ -49,16 +49,18 @@ class Order extends BaseModel
             customer_name as customerName,
             estimated_delay as estimatedDelay,
             product_id as productId,
-            creation_date as creationDate,
-            modification_date as modificationDate,
+            orders.creation_date as creationDate,
+            orders.modification_date as modificationDate,
             related_table as relatedTable,
             quantity,
-            disabled
+            p.name
             FROM orders
+            LEFT JOIN products p
+            ON p.id = product_id
             WHERE order_id = '$id';"
         );
         $query->execute();
-        return $query->fetchAll(PDO::FETCH_CLASS, 'order');
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function getAllOrders()
@@ -71,15 +73,18 @@ class Order extends BaseModel
             customer_name as customerName,
             estimated_delay as estimatedDelay,
             product_id as productId,
-            creation_date as creationDate,
-            modification_date as modificationDate,
+            orders.creation_date as creationDate,
+            orders.modification_date as modificationDate,
             related_table as relatedTable,
             quantity,
+            p.name
             disabled
-            FROM orders;"
+            FROM orders
+            LEFT JOIN products p
+            ON p.id = product_id;"
         );
         $query->execute();
-        return $query->fetchAll(PDO::FETCH_CLASS, 'order');
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function getPending($userTypeId, $status)
@@ -93,17 +98,17 @@ class Order extends BaseModel
                 estimated_delay as estimatedDelay,
                 product_id as productId,
                 related_table as relatedTable,
-                orders.creation_Date as creationDate,
-                orders.disabled,
-                quantity
+                quantity,
+                p.name
             FROM orders
             LEFT JOIN products p
             ON p.id = orders.product_id
             WHERE p.product_type = $userTypeId
-            AND status = '$status';"
+            AND status = '$status'
+            AND orders.disabled = 0;"
         );
         $query->execute();
-        return $query->fetchAll(PDO::FETCH_CLASS, 'order');
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function getAllPending($status)
@@ -171,15 +176,16 @@ class Order extends BaseModel
                 product_id as productId,
                 related_table as relatedTable,
                 orders.creation_Date as creationDate,
-                orders.disabled,
-                quantity
+                quantity,
+                p.name
             FROM orders
             LEFT JOIN products p
             ON p.id = orders.product_id
-            WHERE status = '$status';"
+            WHERE status = '$status'
+            AND orders.disabled = 0;"
         );
         $query->execute();
-        return $query->fetchAll(PDO::FETCH_CLASS, 'order');
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function modifyDisabledStatus($orderId, $productId, $value, $disableDate)

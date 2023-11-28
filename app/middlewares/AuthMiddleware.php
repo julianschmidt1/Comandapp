@@ -14,6 +14,10 @@ class AuthMiddleware
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
         $header = $request->getHeaderLine('Authorization');
+        $response = new Response();
+        if (strlen($header) === 0) {
+            return ResponseHelper::jsonResponse($response, ["response" => "No hay token de autenticacion"]);
+        }
         $token = trim(explode("Bearer", $header)[1]);
 
         try {
@@ -23,8 +27,7 @@ class AuthMiddleware
 
             return $handler->handle($request);
         } catch (Exception $e) {
-            $response = new Response();
-            return ResponseHelper::jsonResponse($response, ["response" => "ERROR: Hubo un error con el TOKEN"]);
+            return ResponseHelper::jsonResponse($response, ["response" => "Ocurrio un error con el token"]);
         }
     }
 
@@ -38,7 +41,7 @@ class AuthMiddleware
             return $handler->handle($request);
         } catch (Exception $e) {
             $response = new Response();
-            return ResponseHelper::jsonResponse($response, ["response" => "ERROR: Hubo un error con el TOKEN"]);
+            return ResponseHelper::jsonResponse($response, ["response" => "Ocurrio un error con el token"]);
         }
     }
 }
